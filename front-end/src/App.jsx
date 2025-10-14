@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import SideBar from "./components/SideBar/SideBar"
 import Header from "./components/Header/Header"
@@ -21,7 +22,7 @@ const MainLayout = ({ children }) => {
   const hideRightSidebar = ['/settings', '/wish-lists'].includes(location.pathname)
   
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-slate-800 overflow-hidden transition-colors">
       {/* Left Sidebar */}
       <SideBar />
       
@@ -42,7 +43,7 @@ const MainLayout = ({ children }) => {
   )
 }
 
-const App = () => {
+const AppContent = () => {
   return (
     <AuthProvider>
       <Router>
@@ -99,11 +100,23 @@ const App = () => {
             </ProtectedRoute>
           } />
           
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/signin" replace />} />
+          {/* Default redirect based on auth status and role */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" replace />
+            </ProtectedRoute>
+          } />
         </Routes>
       </Router>
     </AuthProvider>
+  )
+}
+
+const App = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
