@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import SideBar from "./components/SideBar/SideBar"
 import Header from "./components/Header/Header"
+import Landing from "./pages/Landing/Landing"
 import LibraryMain from "./pages/Home/LibraryMain"
 import Library from "./pages/Library/Library"
 import WishLists from "./pages/WishLists/WishLists"
@@ -49,6 +50,7 @@ const AppContent = () => {
       <Router>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           
@@ -97,13 +99,6 @@ const AppContent = () => {
           <Route path="/admin" element={
             <ProtectedRoute requireAdmin={true}>
               <Admin />
-            </ProtectedRoute>
-          } />
-          
-          {/* Default redirect based on auth status and role */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Navigate to="/dashboard" replace />
             </ProtectedRoute>
           } />
         </Routes>

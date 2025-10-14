@@ -10,7 +10,7 @@ const SideBar = () => {
   const { isDark } = useTheme()
   
   const navigationItems = [
-    { name: 'Home', path: '/',},
+    { name: 'Home', path: '/dashboard',},
     { name: 'Library', path: '/library',},
     { name: 'Wish Lists', path: '/wish-lists',},
     { name: 'My Reading', path: '/my-reading',},
@@ -30,8 +30,8 @@ const SideBar = () => {
   }
 
   const isActive = (path) => {
-    if (path === '/') {
-      return location.pathname === '/'
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard' || location.pathname === '/'
     }
     return location.pathname.startsWith(path)
   }
