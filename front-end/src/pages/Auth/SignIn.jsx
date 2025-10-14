@@ -99,7 +99,7 @@ const SignIn = () => {
           console.log('Button clicked! Current theme:', isDark)
           toggleTheme()
         }}
-        className="absolute top-8 right-8 p-3 text-gray-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full shadow-lg"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 p-2 sm:p-3 text-gray-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full shadow-lg"
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       >
         {isDark ? (
@@ -113,24 +113,24 @@ const SignIn = () => {
         )}
       </button>
       
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 flex items-center justify-center">
+          <div className="mx-auto h-12 w-12 sm:h-16 sm:w-16 flex items-center justify-center">
             <img 
               src="/BooksyLogosCorrect.png" 
               alt="Booksy Logo" 
-              className="h-16 w-16 object-contain"
+              className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
             />
           </div>
           <h2 
-            className="mt-6 text-3xl font-bold"
+            className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-bold"
             style={{ color: isDark ? 'white' : 'black' }}
           >
             Welcome back
           </h2>
           <p 
-            className="mt-2 text-sm"
+            className="mt-2 text-xs sm:text-sm"
             style={{ color: isDark ? '#cbd5e1' : '#4b5563' }}
           >
             Sign in to your Booksy Library account
@@ -138,8 +138,8 @@ const SignIn = () => {
         </div>
 
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 space-y-6 transition-colors">
+        <form className="mt-6 sm:mt-8 space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-5 sm:p-8 space-y-4 sm:space-y-6 transition-colors">
             {errors.general && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex">
@@ -231,7 +231,7 @@ const SignIn = () => {
                   ? 'linear-gradient(to right, #4f46e5, #7c3aed)' 
                   : 'linear-gradient(to right, #e0e7ff, #f3e8ff)'
               }}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
                 isLoading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
             >

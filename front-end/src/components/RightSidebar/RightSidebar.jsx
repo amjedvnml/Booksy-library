@@ -17,16 +17,16 @@ const RightSidebar = () => {
   ]
 
   return (
-    <div className="w-80 bg-slate-900 text-white flex flex-col h-screen">
+    <div className="hidden xl:flex xl:w-80 bg-slate-900 text-white flex-col h-screen">
       {/* Header */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-4 lg:p-6 border-b border-slate-700">
         <h2 className="text-lg font-semibold">About the book</h2>
       </div>
 
       {/* Current Book */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-4 lg:p-6 border-b border-slate-700">
         <div className="mb-4">
-          <div className="w-32 h-44 mx-auto rounded-lg overflow-hidden mb-4">
+          <div className="w-28 lg:w-32 h-40 lg:h-44 mx-auto rounded-lg overflow-hidden mb-4">
             <div className={`w-full h-full bg-gradient-to-br ${currentBook.cover} flex items-center justify-center`}>
               <div className="text-white font-bold text-lg">TC</div>
             </div>
@@ -65,7 +65,7 @@ const RightSidebar = () => {
       </div>
 
       {/* Plot Section */}
-      <div className="p-6 border-b border-slate-700 flex-1">
+      <div className="p-4 lg:p-6 border-b border-slate-700 flex-1 overflow-y-auto">
         <h3 className="font-semibold mb-3">Plot</h3>
         <p className="text-slate-300 text-sm leading-relaxed">
           With Naked Lunch was an initial space community spaces and critical landscapes. 
@@ -79,7 +79,7 @@ const RightSidebar = () => {
       </div>
 
       {/* Recommendations */}
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <h3 className="font-semibold mb-4">You might also like</h3>
         <div className="space-y-3">
           {recommendations.map((book, index) => (
