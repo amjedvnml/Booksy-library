@@ -1,7 +1,9 @@
 import React from 'react'
+import { useTheme } from '../../contexts/ThemeContext'
 import { BookCard, FeaturedBookCard } from '../../components/BookCard/BookCard'
 
 const LibraryMain = () => {
+  const { isDark } = useTheme()
   // Sample book data matching the design
   const featuredBooks = [
     {
@@ -84,8 +86,8 @@ const LibraryMain = () => {
       {/* Featured Books Section */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Featured Books</h2>
-          <button className="text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Featured Books</h2>
+          <button className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
             View all →
           </button>
         </div>
@@ -101,7 +103,7 @@ const LibraryMain = () => {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">Week of Modern Classics</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Week of Modern Classics</h2>
             <p className="text-gray-500 text-sm mt-1">Curated selection of contemporary literature</p>
           </div>
           <button className="text-emerald-600 text-sm font-medium hover:text-emerald-700 transition-colors">
@@ -121,7 +123,7 @@ const LibraryMain = () => {
       {/* Recent Books Grid */}
       <section>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Recently Added</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Recently Added</h2>
           <div className="flex items-center space-x-4">
             <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

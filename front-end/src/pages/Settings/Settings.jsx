@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const Settings = () => {
+  const { isDark } = useTheme()
   const [activeSection, setActiveSection] = useState('general')
   const [settings, setSettings] = useState({
     // General Settings
@@ -59,7 +61,7 @@ const Settings = () => {
     <button
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? 'bg-emerald-600' : 'bg-gray-300'
+        enabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-slate-600'
       }`}
     >
       <span
@@ -71,27 +73,49 @@ const Settings = () => {
   )
 
   const SettingItem = ({ label, description, children }) => (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-slate-700 last:border-b-0">
       <div className="flex-1">
-        <h4 className="text-sm font-medium text-gray-800">{label}</h4>
-        {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+        <h4 
+          className="text-sm font-medium"
+          style={{ color: isDark ? 'white' : '#1f2937' }}
+        >
+          {label}
+        </h4>
+        {description && (
+          <p 
+            className="text-xs mt-1"
+            style={{ color: isDark ? '#94a3b8' : '#6b7280' }}
+          >
+            {description}
+          </p>
+        )}
       </div>
       <div>{children}</div>
     </div>
   )
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-8 max-w-7xl mx-auto bg-gray-50 dark:bg-slate-800 min-h-screen transition-colors">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Settings</h1>
-        <p className="text-gray-600">Customize your reading experience</p>
+        <h1 
+          className="text-3xl font-bold mb-2"
+          style={{ color: isDark ? 'white' : '#1f2937' }}
+        >
+          Settings
+        </h1>
+        <p 
+          className="text-sm"
+          style={{ color: isDark ? '#cbd5e1' : '#4b5563' }}
+        >
+          Customize your reading experience
+        </p>
       </div>
 
       <div className="flex gap-8">
         {/* Settings Navigation */}
         <div className="w-64 flex-shrink-0">
-          <div className="bg-white rounded-xl shadow-sm border p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 transition-colors">
             <nav className="space-y-1">
               {sections.map((section) => (
                 <button
@@ -99,8 +123,8 @@ const Settings = () => {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeSection === section.id
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700'
+                      : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <span>{section.icon}</span>
@@ -113,7 +137,7 @@ const Settings = () => {
 
         {/* Settings Content */}
         <div className="flex-1">
-          <div className="bg-white rounded-xl shadow-sm border">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             
             {/* General Settings */}
             {activeSection === 'general' && (

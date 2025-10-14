@@ -1,9 +1,11 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import SideBar from "./components/SideBar/SideBar"
 import Header from "./components/Header/Header"
+import Landing from "./pages/Landing/Landing"
 import LibraryMain from "./pages/Home/LibraryMain"
 import Library from "./pages/Library/Library"
 import WishLists from "./pages/WishLists/WishLists"
@@ -21,7 +23,7 @@ const MainLayout = ({ children }) => {
   const hideRightSidebar = ['/settings', '/wish-lists'].includes(location.pathname)
   
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-slate-800 overflow-hidden transition-colors">
       {/* Left Sidebar */}
       <SideBar />
       
@@ -42,12 +44,13 @@ const MainLayout = ({ children }) => {
   )
 }
 
-const App = () => {
+const AppContent = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           
@@ -98,12 +101,17 @@ const App = () => {
               <Admin />
             </ProtectedRoute>
           } />
-          
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/signin" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
+  )
+}
+
+const App = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
