@@ -15,6 +15,7 @@ import RightSidebar from "./components/RightSidebar/RightSidebar"
 import SignIn from "./pages/Auth/SignIn"
 import Register from "./pages/Auth/Register"
 import Admin from "./pages/Admin/Admin"
+import Reader from "./pages/Reader/Reader"
 
 const MainLayout = ({ children }) => {
   const location = useLocation()
@@ -96,6 +97,13 @@ const AppContent = () => {
               <MainLayout>
                 <Settings />
               </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Reader Route - Full screen without layout */}
+          <Route path="/reader/:bookId" element={
+            <ProtectedRoute>
+              <Reader />
             </ProtectedRoute>
           } />
           

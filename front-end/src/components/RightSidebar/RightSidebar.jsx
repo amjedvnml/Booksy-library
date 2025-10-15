@@ -1,6 +1,9 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const RightSidebar = () => {
+  const navigate = useNavigate()
+  
   // Current book and recommendations from backend (null initially - will be fetched from API)
   const currentBook = null
   const recommendations = []
@@ -50,7 +53,10 @@ const RightSidebar = () => {
             </div>
 
             {/* Action Button */}
-            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors mt-4">
+            <button 
+              onClick={() => navigate(`/reader/${currentBook.id}`)}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors mt-4"
+            >
               Continue Reading
             </button>
           </>
