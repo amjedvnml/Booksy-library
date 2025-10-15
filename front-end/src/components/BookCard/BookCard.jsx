@@ -1,12 +1,22 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const BookCard = ({ book, size = 'normal' }) => {
+  const navigate = useNavigate()
   const isLarge = size === 'large'
   
+  const handleClick = () => {
+    // Navigate to reader with book id
+    navigate(`/reader/${book.id || 'sample'}`)
+  }
+  
   return (
-    <div className={`group cursor-pointer transition-all duration-300 hover:scale-105 ${
-      isLarge ? 'w-full' : 'w-36 sm:w-40 md:w-44'
-    }`}>
+    <div 
+      onClick={handleClick}
+      className={`group cursor-pointer transition-all duration-300 hover:scale-105 ${
+        isLarge ? 'w-full' : 'w-36 sm:w-40 md:w-44'
+      }`}
+    >
       {/* Book Cover */}
       <div className={`relative overflow-hidden rounded-lg shadow-lg mb-2 sm:mb-3 ${
         isLarge ? 'h-56 sm:h-64' : 'h-48 sm:h-52 md:h-56'
