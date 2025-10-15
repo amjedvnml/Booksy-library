@@ -6,107 +6,8 @@ const WishLists = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newListName, setNewListName] = useState('')
 
-  const wishLists = [
-    {
-      id: 'to-read',
-      name: 'Want to Read',
-      description: 'Books I plan to read soon',
-      count: 12,
-      color: 'bg-blue-500',
-      books: [
-        {
-          title: "The Metamorphosis",
-          author: "Franz Kafka",
-          rating: "4.1",
-          pages: "96",
-          gradient: "from-gray-600 to-gray-800"
-        },
-        {
-          title: "One Hundred Years of Solitude",
-          author: "Gabriel García Márquez", 
-          rating: "4.5",
-          pages: "417",
-          gradient: "from-yellow-600 to-orange-600"
-        },
-        {
-          title: "The Stranger",
-          author: "Albert Camus",
-          rating: "4.0",
-          pages: "123",
-          gradient: "from-indigo-600 to-blue-600"
-        }
-      ]
-    },
-    {
-      id: 'philosophy',
-      name: 'Philosophy Collection',
-      description: 'Essential philosophical works',
-      count: 8,
-      color: 'bg-purple-500',
-      books: [
-        {
-          title: "Being and Time",
-          author: "Martin Heidegger",
-          rating: "4.3",
-          pages: "589",
-          gradient: "from-purple-600 to-indigo-600"
-        },
-        {
-          title: "Critique of Pure Reason",
-          author: "Immanuel Kant",
-          rating: "4.2",
-          pages: "785",
-          gradient: "from-blue-600 to-purple-600"
-        }
-      ]
-    },
-    {
-      id: 'sci-fi',
-      name: 'Science Fiction',
-      description: 'Futuristic and speculative fiction',
-      count: 15,
-      color: 'bg-green-500',
-      books: [
-        {
-          title: "Dune",
-          author: "Frank Herbert",
-          rating: "4.6",
-          pages: "688",
-          gradient: "from-orange-600 to-red-600"
-        },
-        {
-          title: "Foundation",
-          author: "Isaac Asimov",
-          rating: "4.4",
-          pages: "244",
-          gradient: "from-blue-600 to-cyan-600"
-        },
-        {
-          title: "Neuromancer",
-          author: "William Gibson",
-          rating: "4.2",
-          pages: "271",
-          gradient: "from-green-600 to-teal-600"
-        }
-      ]
-    },
-    {
-      id: 'favorites',
-      name: 'All-Time Favorites',
-      description: 'Books that changed my perspective',
-      count: 6,
-      color: 'bg-red-500',
-      books: [
-        {
-          title: "The Brothers Karamazov",
-          author: "Fyodor Dostoevsky",
-          rating: "4.7",
-          pages: "824",
-          gradient: "from-red-600 to-pink-600"
-        }
-      ]
-    }
-  ]
+  // Wish lists from backend (empty initially - will be fetched from API)
+  const wishLists = []
 
   const activeListData = wishLists.find(list => list.id === activeList)
 
@@ -257,25 +158,25 @@ const WishLists = () => {
       {/* Create List Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New List</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md transition-colors">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Create New List</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">List Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">List Name</label>
                 <input
                   type="text"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   placeholder="Enter list name..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 transition-colors"
                 />
               </div>
               
               <div className="flex items-center justify-end space-x-3">
                 <button 
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white transition-colors"
                 >
                   Cancel
                 </button>

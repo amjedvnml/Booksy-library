@@ -4,82 +4,11 @@ import { BookCard, FeaturedBookCard } from '../../components/BookCard/BookCard'
 
 const LibraryMain = () => {
   const { isDark } = useTheme()
-  // Sample book data matching the design
-  const featuredBooks = [
-    {
-      title: "The Birth of the Clinic",
-      author: "Michel Foucault",
-      rating: "4.2",
-      pages: "240",
-      duration: "8h",
-      size: "4.6M",
-      gradient: "from-purple-600 to-blue-600"
-    },
-    {
-      title: "Our Lady of the Flowers",
-      author: "Jean Genet",
-      rating: "4.1", 
-      pages: "200",
-      duration: "7h",
-      size: "3.2M",
-      gradient: "from-orange-500 to-red-500"
-    }
-  ]
-
-  const weekModernClassics = [
-    {
-      title: "Nietzsche, Hölderlin, Novalis",
-      author: "Various Authors",
-      rating: "4.3",
-      pages: "320",
-      gradient: "from-indigo-600 to-purple-600"
-    },
-    {
-      title: "Witches Abroad",
-      author: "Terry Pratchett", 
-      rating: "4.5",
-      pages: "280",
-      gradient: "from-green-600 to-teal-600"
-    },
-    {
-      title: "Witches Abroad", 
-      author: "Terry Pratchett",
-      rating: "4.5", 
-      pages: "280",
-      gradient: "from-pink-600 to-purple-600"
-    }
-  ]
-
-  const recentBooks = [
-    {
-      title: "The Cut-Up Trilogy: The Soft Machine",
-      author: "William S. Burroughs",
-      rating: "4.0",
-      pages: "192",
-      gradient: "from-red-600 to-orange-600"
-    },
-    {
-      title: "The Cut-Up Trilogy: The Soft Machine", 
-      author: "William S. Burroughs",
-      rating: "4.0",
-      pages: "192", 
-      gradient: "from-yellow-600 to-orange-600"
-    },
-    {
-      title: "The Cut-Up Trilogy: The Ticket That Exploded",
-      author: "William S. Burroughs", 
-      rating: "4.1",
-      pages: "216",
-      gradient: "from-blue-600 to-indigo-600"
-    },
-    {
-      title: "Nova Express, and Other Poems",
-      author: "William S. Burroughs",
-      rating: "3.9", 
-      pages: "144",
-      gradient: "from-teal-600 to-cyan-600"
-    }
-  ]
+  
+  // Books from backend (empty initially - will be fetched from API)
+  const featuredBooks = []
+  const weekModernClassics = []
+  const recentBooks = []
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">

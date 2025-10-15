@@ -86,14 +86,7 @@
 }
 
 /* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
-}
-
-.dark * {
-  scrollbar-color: rgba(71, 85, 105, 0.6) transparent;
-}
+/* Custom scrollbar styles for Firefox are not fully supported in all browsers, so only WebKit-based customizations are applied for compatibility. */
 
 /* Smooth transitions */
 * {

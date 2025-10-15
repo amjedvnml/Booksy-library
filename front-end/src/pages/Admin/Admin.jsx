@@ -1,86 +1,15 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const Admin = () => {
+  const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('users')
   
-  // Mock data
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'user',
-      status: 'active',
-      joinDate: '2024-01-15',
-      booksRead: 24,
-      lastLogin: '2024-10-12'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'user',
-      status: 'active',
-      joinDate: '2024-02-20',
-      booksRead: 18,
-      lastLogin: '2024-10-11'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike@example.com',
-      role: 'user',
-      status: 'suspended',
-      joinDate: '2024-03-10',
-      booksRead: 5,
-      lastLogin: '2024-10-05'
-    },
-    {
-      id: 4,
-      name: 'Admin User',
-      email: 'admin@booksy.com',
-      role: 'admin',
-      status: 'active',
-      joinDate: '2024-01-01',
-      booksRead: 0,
-      lastLogin: '2024-10-13'
-    }
-  ])
-
-  const [books, setBooks] = useState([
-    {
-      id: 1,
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      isbn: '978-0-7432-7356-5',
-      status: 'available',
-      addedDate: '2024-01-15',
-      downloads: 156,
-      rating: 4.2
-    },
-    {
-      id: 2,
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      isbn: '978-0-06-112008-4',
-      status: 'available',
-      addedDate: '2024-01-20',
-      downloads: 203,
-      rating: 4.5
-    },
-    {
-      id: 3,
-      title: '1984',
-      author: 'George Orwell',
-      isbn: '978-0-452-28423-4',
-      status: 'pending',
-      addedDate: '2024-02-01',
-      downloads: 89,
-      rating: 4.3
-    }
-  ])
+  // Data from backend (empty initially - will be fetched from API)
+  const [users, setUsers] = useState([])
+  const [books, setBooks] = useState([])
 
   const stats = {
     totalUsers: users.length,
@@ -124,9 +53,9 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-800 transition-colors">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
@@ -136,15 +65,32 @@ const Admin = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Booksy Admin</h1>
-                <p className="text-sm text-gray-500">Library Management Dashboard</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Booksy Admin</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Library Management Dashboard</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <button 
+                onClick={toggleTheme}
+                className="p-2 text-gray-400 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDark ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+              
               <button
                 onClick={() => navigate('/dashboard')}
-                className="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
               >
                 View Library
               </button>
@@ -162,11 +108,11 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalUsers}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Total Users</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalUsers}</p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,11 +122,11 @@ const Admin = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.activeUsers}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Active Users</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.activeUsers}</p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,11 +136,11 @@ const Admin = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Books</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalBooks}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Total Books</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalBooks}</p>
               </div>
               <div className="bg-emerald-100 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,11 +150,11 @@ const Admin = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-sm border">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Downloads</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalDownloads}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Total Downloads</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.totalDownloads}</p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,10 +195,10 @@ const Admin = () => {
 
         {/* Users Management */}
         {activeTab === 'users' && (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">Users Management</h2>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Users Management</h2>
                 <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
                   Add User
                 </button>
@@ -261,24 +207,24 @@ const Admin = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-800">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Books Read</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Books Read</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Join Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Last Login</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-slate-400">{user.email}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -287,8 +233,8 @@ const Admin = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={user.status} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.booksRead}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.booksRead}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {new Date(user.joinDate).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -320,10 +266,10 @@ const Admin = () => {
 
         {/* Books Management */}
         {activeTab === 'books' && (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">Books Management</h2>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Books Management</h2>
                 <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
                   Add Book
                 </button>
@@ -332,27 +278,27 @@ const Admin = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-800">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISBN</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Downloads</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Book</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">ISBN</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Downloads</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rating</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Added Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {books.map((book) => (
-                    <tr key={book.id} className="hover:bg-gray-50">
+                    <tr key={book.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{book.title}</div>
-                          <div className="text-sm text-gray-500">{book.author}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{book.title}</div>
+                          <div className="text-sm text-gray-500 dark:text-slate-400">{book.author}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.isbn}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.isbn}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={book.status} />
                       </td>

@@ -6,76 +6,16 @@ const MyReading = () => {
   const { isDark } = useTheme()
   const [activeTab, setActiveTab] = useState('currently-reading')
 
-  const currentlyReading = [
-    {
-      title: "The Cut-Up Trilogy: Nova Express",
-      author: "William S. Burroughs",
-      rating: "4.0",
-      pages: "195",
-      gradient: "from-indigo-600 to-purple-600",
-      progress: 75,
-      pagesRead: 146,
-      totalPages: 195,
-      timeLeft: "2h 15m",
-      lastRead: "2024-10-12",
-      startedDate: "2024-09-20",
-      avgPagesPerDay: 4.2
-    },
-    {
-      title: "Naked Lunch",
-      author: "William S. Burroughs", 
-      rating: "4.0",
-      pages: "191",
-      gradient: "from-red-600 to-orange-600",
-      progress: 65,
-      pagesRead: 124,
-      totalPages: 191,
-      timeLeft: "1h 45m",
-      lastRead: "2024-10-11",
-      startedDate: "2024-09-15",
-      avgPagesPerDay: 3.8
-    }
-  ]
-
-  const recentlyFinished = [
-    {
-      title: "The Birth of the Clinic",
-      author: "Michel Foucault",
-      rating: "4.2",
-      pages: "240",
-      gradient: "from-purple-600 to-blue-600",
-      finishedDate: "2024-10-05",
-      readingTime: "12 days",
-      userRating: 4
-    },
-    {
-      title: "Our Lady of the Flowers",
-      author: "Jean Genet",
-      rating: "4.1",
-      pages: "200", 
-      gradient: "from-pink-600 to-purple-600",
-      finishedDate: "2024-09-28",
-      readingTime: "8 days",
-      userRating: 5
-    },
-    {
-      title: "Discipline and Punish",
-      author: "Michel Foucault",
-      rating: "4.2",
-      pages: "333",
-      gradient: "from-green-600 to-emerald-600",
-      finishedDate: "2024-09-15",
-      readingTime: "15 days",
-      userRating: 4
-    }
-  ]
+  // Reading data from backend (empty initially - will be fetched from API)
+  const currentlyReading = []
+  const recentlyFinished = []
 
   const readingGoals = {
     yearlyGoal: 50,
-    currentCount: 32,
+    currentCount: 0,
     pagesGoal: 15000,
-    currentPages: 9847,
-    streak: 15
+    currentPages: 0,
+    streak: 0
   }
 
   const tabs = [
@@ -144,7 +84,7 @@ const MyReading = () => {
   )
 
   const FinishedCard = ({ book }) => (
-    <div className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 hover:shadow-md transition-all">
       <div className="flex space-x-4">
         <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0">
           <div className={`w-full h-full bg-gradient-to-br ${book.gradient} flex items-center justify-center text-white font-bold text-sm`}>
@@ -153,10 +93,10 @@ const MyReading = () => {
         </div>
 
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-800 mb-1">{book.title}</h3>
-          <p className="text-gray-600 text-sm mb-2">{book.author}</p>
+          <h3 className="font-semibold text-gray-800 dark:text-white mb-1">{book.title}</h3>
+          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">{book.author}</p>
           
-          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-slate-400 mb-3">
             <span>Finished: {new Date(book.finishedDate).toLocaleDateString()}</span>
             <span>•</span>
             <span>{book.readingTime}</span>
@@ -164,10 +104,10 @@ const MyReading = () => {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Your rating:</span>
+              <span className="text-sm text-gray-600 dark:text-slate-400">Your rating:</span>
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <span key={star} className={`text-lg ${star <= book.userRating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                  <span key={star} className={`text-lg ${star <= book.userRating ? 'text-yellow-400' : 'text-gray-300 dark:text-slate-600'}`}>
                     ★
                   </span>
                 ))}
