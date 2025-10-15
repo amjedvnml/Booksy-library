@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 
-const SideBar = () => {
+const SideBar = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout, isAdmin } = useAuth()
@@ -27,6 +27,8 @@ const SideBar = () => {
       return
     }
     navigate(item.path)
+    // Close mobile menu after navigation
+    if (onClose) onClose()
   }
 
   const isActive = (path) => {
@@ -37,7 +39,23 @@ const SideBar = () => {
   }
 
   return (
-    <div className="w-80 h-screen bg-slate-900 dark:from-indigo-950 dark:via-purple-950 dark:to-slate-950 text-white flex flex-col transition-colors">
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 sm:w-72 lg:w-80 
+        h-screen bg-slate-900 dark:from-indigo-950 dark:via-purple-950 dark:to-slate-950 
+        text-white flex flex-col transition-all duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
       {/* User Profile Section */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center space-x-4">
@@ -52,7 +70,7 @@ const SideBar = () => {
       </div>
 
       {/* Navigation Menu */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 overflow-y-auto">
         <nav className="space-y-2">
           {navigationItems.map((item) => (
             <button
@@ -70,7 +88,19 @@ const SideBar = () => {
           ))}
         </nav>
       </div>
+      
+      {/* Close button for mobile */}
+      <button
+        onClick={onClose}
+        className="lg:hidden absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+        aria-label="Close menu"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
+    </>
   )
 }
 
