@@ -20,6 +20,7 @@ import Reader from "./pages/Reader/Reader"
 const MainLayout = ({ children }) => {
   const location = useLocation()
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false)
   
   // Hide right sidebar on certain pages
   const hideRightSidebar = ['/settings', '/wish-lists'].includes(location.pathname)
@@ -29,13 +30,18 @@ const MainLayout = ({ children }) => {
       {/* Left Sidebar */}
       <SideBar 
         isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
+        onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
       />
       
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header onMenuClick={() => setIsSidebarOpen(true)} />
+        <Header 
+          onMenuClick={() => setIsSidebarOpen(true)}
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
         
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
