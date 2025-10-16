@@ -1,0 +1,103 @@
+# ============================================
+# .gitignore - Files to exclude from Git
+# ============================================
+
+# -------- ENVIRONMENT VARIABLES --------
+# NEVER commit sensitive data!
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# -------- DEPENDENCIES --------
+# node_modules is huge (~200MB) and can be reinstalled with npm install
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# -------- LOGS --------
+logs/
+*.log
+
+# -------- OS FILES --------
+# Mac
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# -------- IDE & EDITORS --------
+# VS Code
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# -------- BUILD & TEMP FILES --------
+dist/
+build/
+tmp/
+temp/
+*.tmp
+
+# -------- TESTING --------
+coverage/
+.nyc_output/
+
+# -------- MISC --------
+*.swp
+*.swo
+*.swn
+.cache/
+
+# -------- DATABASE --------
+# If using local MongoDB data
+data/
+*.db
+
+# -------- UPLOADS --------
+# User uploaded files (if you implement file upload)
+uploads/
+public/uploads/
+
+# ============================================
+# EXPLANATION:
+# ============================================
+# 
+# WHY .gitignore?
+# - Keeps repository clean and small
+# - Protects sensitive data (.env)
+# - Excludes files that can be regenerated
+# - Prevents OS-specific files
+# - Avoids merge conflicts in generated files
+#
+# MOST IMPORTANT:
+# .env - Contains secrets (passwords, API keys)
+# node_modules/ - Can be recreated with npm install
+#
+# HOW IT WORKS:
+# - Git ignores files/folders matching these patterns
+# - Already committed files are NOT affected
+# - Use ! to negate a pattern (include specific files)
+# ============================================

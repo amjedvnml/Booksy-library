@@ -1,0 +1,208 @@
+###############################################
+# BOOKSY LIBRARY API - REST CLIENT TESTS
+###############################################
+# Install "REST Client" extension in VS Code
+# Click "Send Request" above each request to test
+###############################################
+
+@baseUrl = http://localhost:5000
+@token = YOUR_TOKEN_HERE
+
+###############################################
+# 🏥 HEALTH CHECK
+###############################################
+
+### Check Server Health
+GET {{baseUrl}}/api/health
+
+###############################################
+# 🔐 AUTHENTICATION
+###############################################
+
+### Register New User
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123",
+  "phone": "555-1234"
+}
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Get My Profile (Protected)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Update Profile (Protected)
+PUT {{baseUrl}}/api/auth/updateprofile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "phone": "555-9999"
+}
+
+### Update Password (Protected)
+PUT {{baseUrl}}/api/auth/updatepassword
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+### Get My Borrowed Books (Protected)
+GET {{baseUrl}}/api/auth/borrowed
+Authorization: Bearer {{token}}
+
+### Get My Borrow History (Protected)
+GET {{baseUrl}}/api/auth/history
+Authorization: Bearer {{token}}
+
+### Logout (Protected)
+GET {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{token}}
+
+###############################################
+# 📚 BOOKS - PUBLIC ROUTES
+###############################################
+
+### Get All Books
+GET {{baseUrl}}/api/books
+
+### Get All Books with Pagination
+GET {{baseUrl}}/api/books?page=1&limit=5
+
+### Get Books Filtered by Genre
+GET {{baseUrl}}/api/books?genre=Fiction
+
+### Get Available Books Only
+GET {{baseUrl}}/api/books?available=true
+
+### Get Books Sorted by Title
+GET {{baseUrl}}/api/books?sort=title
+
+### Get Books with Selected Fields
+GET {{baseUrl}}/api/books?select=title,author,isbn
+
+### Get Single Book (Replace :id with actual book ID)
+GET {{baseUrl}}/api/books/REPLACE_WITH_BOOK_ID
+
+### Search Books by Text
+GET {{baseUrl}}/api/books/search/harry potter
+
+### Get Books by Genre
+GET {{baseUrl}}/api/books/genre/Fiction
+
+###############################################
+# 📚 BOOKS - PROTECTED ROUTES (LIBRARIAN)
+###############################################
+
+### Create New Book (Librarian/Admin Only)
+POST {{baseUrl}}/api/books
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "isbn": "978-0743273565",
+  "description": "A classic American novel about the Jazz Age",
+  "publisher": "Scribner",
+  "publishedYear": 1925,
+  "pages": 180,
+  "language": "English",
+  "genre": "Fiction",
+  "quantity": 5,
+  "coverImage": "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg"
+}
+
+### Update Book (Librarian/Admin Only)
+PUT {{baseUrl}}/api/books/REPLACE_WITH_BOOK_ID
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "quantity": 10,
+  "available": true
+}
+
+### Delete Book (Admin Only)
+DELETE {{baseUrl}}/api/books/REPLACE_WITH_BOOK_ID
+Authorization: Bearer {{token}}
+
+###############################################
+# 📖 BOOK BORROWING
+###############################################
+
+### Borrow a Book (User)
+POST {{baseUrl}}/api/books/REPLACE_WITH_BOOK_ID/borrow
+Authorization: Bearer {{token}}
+
+### Return a Book (User)
+POST {{baseUrl}}/api/books/REPLACE_WITH_BOOK_ID/return
+Authorization: Bearer {{token}}
+
+###############################################
+# 📊 STATISTICS (ADMIN)
+###############################################
+
+### Get Book Statistics (Admin Only)
+GET {{baseUrl}}/api/books/stats
+Authorization: Bearer {{token}}
+
+###############################################
+# 🧪 ERROR TESTING
+###############################################
+
+### Test - Invalid Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpassword"
+}
+
+### Test - Missing Required Fields
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test"
+}
+
+### Test - Unauthorized Access (No Token)
+GET {{baseUrl}}/api/auth/me
+
+### Test - Invalid Book ID
+GET {{baseUrl}}/api/books/invalid_id_format
+
+### Test - Non-existent Book
+GET {{baseUrl}}/api/books/507f1f77bcf86cd799439011
+
+###############################################
+# 📝 INSTRUCTIONS
+###############################################
+#
+# 1. Make sure your server is running (npm run dev)
+# 2. Install "REST Client" extension in VS Code
+# 3. After registering/logging in, copy the token
+# 4. Replace "YOUR_TOKEN_HERE" at the top with your actual token
+# 5. Replace "REPLACE_WITH_BOOK_ID" with actual book IDs from your database
+# 6. Click "Send Request" above any request to execute it
+# 7. View response in the right panel
+#
+###############################################
