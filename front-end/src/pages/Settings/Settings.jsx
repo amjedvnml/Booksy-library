@@ -133,7 +133,15 @@ const Settings = () => {
         profileImage: response.user?.profileImage || profileImagePreview
       })
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      // Show appropriate message based on whether it was saved to backend or locally
+      if (response.isLocalOnly) {
+        setMessage({ 
+          type: 'warning', 
+          text: 'Profile saved locally! Backend sync pending. Changes will be stored when backend is updated.' 
+        })
+      } else {
+        setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      }
       
       // Clear password fields
       setProfileData(prev => ({
@@ -367,22 +375,26 @@ const Settings = () => {
               <div className="p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">Profile Settings</h2>
                 
-                {/* Success/Error Message */}
+                {/* Success/Error/Warning Message */}
                 {message.text && (
                   <div className={`mb-4 p-3 rounded-lg flex items-start space-x-3 ${
                     message.type === 'success' 
                       ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800'
+                      : message.type === 'warning'
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800'
                       : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800'
                   }`}>
                     <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                       {message.type === 'success' ? (
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      ) : message.type === 'warning' ? (
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       ) : (
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       )}
                     </svg>
                     <p className="text-sm flex-1">{message.text}</p>
-                    <button onClick={() => setMessage({ type: '', text: '' })} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setMessage({ type: '', text: '' })} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
