@@ -10,6 +10,25 @@ const Admin = () => {
   // Data from backend (empty initially - will be fetched from API)
   const [users, setUsers] = useState([])
   const [books, setBooks] = useState([])
+  
+  // Form states
+  const [showUserForm, setShowUserForm] = useState(false)
+  const [showBookForm, setShowBookForm] = useState(false)
+  const [userForm, setUserForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'member'
+  })
+  const [bookForm, setBookForm] = useState({
+    title: '',
+    author: '',
+    pdfFile: null,
+    genre: '',
+    pages: '',
+    publishYear: '',
+    description: ''
+  })
 
   const stats = {
     totalUsers: users.length,
@@ -35,6 +54,42 @@ const Admin = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(user => user.id !== userId))
     }
+  }
+
+  const deleteBook = (bookId) => {
+    if (window.confirm('Are you sure you want to delete this book?')) {
+      setBooks(books.filter(book => book.id !== bookId))
+    }
+  }
+
+  const handleAddUser = (e) => {
+    e.preventDefault()
+    const newUser = {
+      id: Date.now(),
+      ...userForm,
+      status: 'active',
+      booksRead: 0,
+      joinDate: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    }
+    setUsers([...users, newUser])
+    setUserForm({ name: '', email: '', password: '', role: 'member' })
+    setShowUserForm(false)
+  }
+
+  const handleAddBook = (e) => {
+    e.preventDefault()
+    const newBook = {
+      id: Date.now(),
+      ...bookForm,
+      status: 'available',
+      downloads: 0,
+      rating: 0,
+      addedDate: new Date().toISOString()
+    }
+    setBooks([...books, newBook])
+    setBookForm({ title: '', author: '', pdfFile: null, genre: '', pages: '', publishYear: '', description: '' })
+    setShowBookForm(false)
   }
 
   const StatusBadge = ({ status }) => {
@@ -195,15 +250,97 @@ const Admin = () => {
 
         {/* Users Management */}
         {activeTab === 'users' && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Users Management</h2>
-                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
-                  Add User
-                </button>
+          <>
+            {/* Add User Form */}
+            {showUserForm && (
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 transition-colors mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Add New User</h3>
+                <form onSubmit={handleAddUser}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={userForm.name}
+                        onChange={(e) => setUserForm({...userForm, name: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={userForm.email}
+                        onChange={(e) => setUserForm({...userForm, email: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Password *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={userForm.password}
+                        onChange={(e) => setUserForm({...userForm, password: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Role *
+                      </label>
+                      <select
+                        value={userForm.role}
+                        onChange={(e) => setUserForm({...userForm, role: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                      >
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setShowUserForm(false)}
+                      className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      Add User
+                    </button>
+                  </div>
+                </form>
               </div>
-            </div>
+            )}
+
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Users Management</h2>
+                  <button 
+                    onClick={() => setShowUserForm(!showUserForm)}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    {showUserForm ? 'Hide Form' : 'Add User'}
+                  </button>
+                </div>
+              </div>
 
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -262,26 +399,169 @@ const Admin = () => {
               </table>
             </div>
           </div>
+          </>
         )}
 
         {/* Books Management */}
         {activeTab === 'books' && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Books Management</h2>
-                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors">
-                  Add Book
-                </button>
+          <>
+            {/* Add Book Form */}
+            {showBookForm && (
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 transition-colors mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Add New Book</h3>
+                <form onSubmit={handleAddBook}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Title *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={bookForm.title}
+                        onChange={(e) => setBookForm({...bookForm, title: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="The Great Gatsby"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Author *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={bookForm.author}
+                        onChange={(e) => setBookForm({...bookForm, author: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="F. Scott Fitzgerald"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Genre *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={bookForm.genre}
+                        onChange={(e) => setBookForm({...bookForm, genre: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="Fiction"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Upload PDF File *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-emerald-500 dark:hover:border-emerald-400 transition-colors">
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          required
+                          onChange={(e) => setBookForm({...bookForm, pdfFile: e.target.files[0]})}
+                          className="hidden"
+                          id="pdf-upload"
+                        />
+                        <label htmlFor="pdf-upload" className="cursor-pointer">
+                          <div className="flex flex-col items-center space-y-2">
+                            <svg className="w-12 h-12 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <div className="text-sm text-gray-600 dark:text-slate-400">
+                              {bookForm.pdfFile ? (
+                                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                  {bookForm.pdfFile.name}
+                                </span>
+                              ) : (
+                                <>
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Click to upload</span> or drag and drop
+                                </>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-500">PDF files only (MAX. 50MB)</p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Pages *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={bookForm.pages}
+                        onChange={(e) => setBookForm({...bookForm, pages: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="180"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Publish Year *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={bookForm.publishYear}
+                        onChange={(e) => setBookForm({...bookForm, publishYear: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="1925"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        value={bookForm.description}
+                        onChange={(e) => setBookForm({...bookForm, description: e.target.value})}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="Brief description of the book..."
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setShowBookForm(false)}
+                      className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      Add Book
+                    </button>
+                  </div>
+                </form>
               </div>
-            </div>
+            )}
+
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden transition-colors">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Books Management</h2>
+                  <button 
+                    onClick={() => setShowBookForm(!showBookForm)}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    {showBookForm ? 'Hide Form' : 'Add Book'}
+                  </button>
+                </div>
+              </div>
 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-800">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Book</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">ISBN</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Genre</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">PDF Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Downloads</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rating</th>
@@ -298,24 +578,48 @@ const Admin = () => {
                           <div className="text-sm text-gray-500 dark:text-slate-400">{book.author}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.isbn}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.genre}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {book.pdfFile ? (
+                            <>
+                              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="text-sm text-emerald-600 dark:text-emerald-400">Uploaded</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                              </svg>
+                              <span className="text-sm text-gray-400 dark:text-slate-500">No PDF</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={book.status} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.downloads}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.downloads}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         <div className="flex items-center">
                           <span className="text-yellow-400 mr-1">★</span>
                           {book.rating}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {new Date(book.addedDate).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <button className="text-emerald-600 hover:text-emerald-900">Edit</button>
-                          <button className="text-red-600 hover:text-red-900">Delete</button>
+                          <button 
+                            onClick={() => deleteBook(book.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -324,6 +628,7 @@ const Admin = () => {
               </table>
             </div>
           </div>
+          </>
         )}
       </div>
     </div>
