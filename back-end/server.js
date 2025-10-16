@@ -94,10 +94,17 @@ app.use((err, req, res, next) => {
 });
 
 // -------- 8. START SERVER --------
-app.listen(PORT, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    console.log(`📍 Access server at: http://localhost:${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+        console.log(`📍 Access server at: http://localhost:${PORT}`);
+    });
+}
+
+// -------- 9. EXPORT FOR VERCEL SERVERLESS --------
+// Vercel uses this export to handle requests
+module.exports = app;
 
 // ============================================
 // DEEP DIVE EXPLANATIONS:
