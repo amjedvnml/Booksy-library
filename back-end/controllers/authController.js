@@ -161,18 +161,20 @@ exports.getMe = async (req, res, next) => {
 };
 
 // ============================================
-// @desc    Update user profile
-// @route   PUT /api/auth/updateprofile
+// @desc    Update user profile (including avatar)
+// @route   PUT /api/auth/profile
 // @access  Private
 // ============================================
 exports.updateProfile = async (req, res, next) => {
     try {
         // Fields allowed to be updated
-        const fieldsToUpdate = {
-            name: req.body.name,
-            phone: req.body.phone,
-            address: req.body.address
-        };
+        const fieldsToUpdate = {};
+        
+        // Only update fields that are provided
+        if (req.body.name) fieldsToUpdate.name = req.body.name;
+        if (req.body.phone) fieldsToUpdate.phone = req.body.phone;
+        if (req.body.address) fieldsToUpdate.address = req.body.address;
+        if (req.body.avatar) fieldsToUpdate.avatar = req.body.avatar;
         
         const user = await User.findByIdAndUpdate(
             req.user.id,
@@ -181,7 +183,7 @@ exports.updateProfile = async (req, res, next) => {
                 new: true,
                 runValidators: true
             }
-        );
+        ).select('-password');
         
         res.status(200).json({
             success: true,
@@ -190,6 +192,14 @@ exports.updateProfile = async (req, res, next) => {
         });
         
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Validation Error',
+                errors: messages
+            });
+        }
         next(error);
     }
 };
