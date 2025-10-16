@@ -43,7 +43,33 @@ app.use(async (req, res, next) => {
 // Think of them as security guards checking everyone before they enter
 
 // CORS Middleware - Allows requests from different origins (your frontend)
-app.use(cors());
+// Configure CORS to accept requests from your frontend
+const corsOptions = {
+    origin: function (origin, callback) {
+        // List of allowed origins (your frontend URLs)
+        const allowedOrigins = [
+            process.env.FRONTEND_URL,                    // Your production frontend
+            'http://localhost:3000',                     // React/Next.js dev server
+            'http://localhost:5173',                     // Vite dev server
+            'http://localhost:4200',                     // Angular dev server
+            'http://127.0.0.1:3000',                     // Alternative localhost
+            'http://127.0.0.1:5173',                     // Alternative localhost
+        ].filter(Boolean); // Remove undefined values
+
+        // Allow requests with no origin (like Postman, curl, mobile apps)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,                                   // Allow cookies and authentication headers
+    optionsSuccessStatus: 200,                           // For legacy browser support
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'],   // Allowed headers
+};
+
+app.use(cors(corsOptions));
 
 // JSON Parser Middleware - Converts incoming JSON data to JavaScript objects
 app.use(express.json());
