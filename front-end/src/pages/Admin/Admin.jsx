@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../../contexts/ThemeContext'
+import api from '../../services/api'
 
 const Admin = () => {
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('users')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   
   // Data from backend (empty initially - will be fetched from API)
   const [users, setUsers] = useState([])
@@ -37,8 +40,27 @@ const Admin = () => {
     totalDownloads: books.reduce((sum, book) => sum + book.downloads, 0)
   }
 
+  // Fetch books from API on component mount
+  useEffect(() => {
+    fetchBooks()
+  }, [])
+
+  const fetchBooks = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await api.getAllBooks()
+      setBooks(Array.isArray(data) ? data : data.books || [])
+    } catch (err) {
+      setError(err.message)
+      console.error('Error fetching books:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogout = () => {
-    localStorage.clear()
+    api.logout()
     navigate('/signin')
   }
 
@@ -56,9 +78,15 @@ const Admin = () => {
     }
   }
 
-  const deleteBook = (bookId) => {
+  const deleteBook = async (bookId) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
-      setBooks(books.filter(book => book.id !== bookId))
+      try {
+        await api.deleteBook(bookId)
+        setBooks(books.filter(book => book._id !== bookId || book.id !== bookId))
+        alert('Book deleted successfully!')
+      } catch (err) {
+        alert('Error deleting book: ' + err.message)
+      }
     }
   }
 
@@ -77,19 +105,34 @@ const Admin = () => {
     setShowUserForm(false)
   }
 
-  const handleAddBook = (e) => {
+  const handleAddBook = async (e) => {
     e.preventDefault()
-    const newBook = {
-      id: Date.now(),
-      ...bookForm,
-      status: 'available',
-      downloads: 0,
-      rating: 0,
-      addedDate: new Date().toISOString()
+    setLoading(true)
+    
+    try {
+      const bookData = {
+        title: bookForm.title,
+        author: bookForm.author,
+        genre: bookForm.genre,
+        pages: parseInt(bookForm.pages),
+        publishYear: parseInt(bookForm.publishYear),
+        description: bookForm.description,
+        pdfFile: bookForm.pdfFile
+      }
+      
+      await api.createBook(bookData)
+      alert('Book added successfully!')
+      
+      // Reset form and refresh books list
+      setBookForm({ title: '', author: '', pdfFile: null, genre: '', pages: '', publishYear: '', description: '' })
+      setShowBookForm(false)
+      fetchBooks()
+    } catch (err) {
+      alert('Error adding book: ' + err.message)
+      console.error('Error:', err)
+    } finally {
+      setLoading(false)
     }
-    setBooks([...books, newBook])
-    setBookForm({ title: '', author: '', pdfFile: null, genre: '', pages: '', publishYear: '', description: '' })
-    setShowBookForm(false)
   }
 
   const StatusBadge = ({ status }) => {
@@ -161,6 +204,23 @@ const Admin = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
@@ -533,9 +593,16 @@ const Admin = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                      disabled={loading}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      Add Book
+                      {loading && (
+                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      )}
+                      <span>{loading ? 'Adding...' : 'Add Book'}</span>
                     </button>
                   </div>
                 </form>
@@ -556,21 +623,40 @@ const Admin = () => {
               </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-slate-800">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Book</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Genre</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">PDF Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Downloads</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rating</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Added Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                  {books.map((book) => (
+              {loading && books.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex flex-col items-center space-y-4">
+                    <svg className="animate-spin h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-600 dark:text-slate-400">Loading books...</p>
+                  </div>
+                </div>
+              ) : books.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No books</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Get started by adding a new book.</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Book</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Genre</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">PDF Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Downloads</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rating</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Added Date</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                    {books.map((book) => (
                     <tr key={book.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -623,9 +709,10 @@ const Admin = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
           </>
