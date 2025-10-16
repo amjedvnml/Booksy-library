@@ -17,7 +17,26 @@ const app = express(); // Creates an instance of an Express application
 const PORT = process.env.PORT || 5000; // Get port from .env or use 5000 as default
 
 // -------- 4. CONNECT TO DATABASE --------
-connectDB(); // Establish connection to MongoDB
+// For local development, connect immediately
+if (process.env.NODE_ENV !== 'production') {
+    connectDB(); // Establish connection to MongoDB
+}
+
+// For serverless (Vercel), connect on first request
+app.use(async (req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        try {
+            await connectDB();
+        } catch (error) {
+            console.error('Database connection failed:', error);
+            return res.status(503).json({
+                success: false,
+                message: 'Database temporarily unavailable'
+            });
+        }
+    }
+    next();
+});
 
 // -------- 5. MIDDLEWARE --------
 // Middleware = functions that run BEFORE your route handlers
