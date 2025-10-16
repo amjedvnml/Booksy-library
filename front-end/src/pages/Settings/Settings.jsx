@@ -1,13 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
+import api from '../../services/api'
 
 const Settings = () => {
   const { isDark } = useTheme()
-  const [activeSection, setActiveSection] = useState('general')
+  const { user, updateUser } = useAuth()
+  const [activeSection, setActiveSection] = useState('profile')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  const [profileImage, setProfileImage] = useState(null)
+  const [profileImagePreview, setProfileImagePreview] = useState(user?.profileImage || null)
+  
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  
   const [settings, setSettings] = useState({
     // General Settings
-    username: 'Max Defrance',
-    email: 'max.defrance@email.com',
     timezone: 'America/New_York',
     language: 'English',
     
@@ -40,6 +55,103 @@ const Settings = () => {
     fontFamily: 'Inter',
     compactMode: false
   })
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        email: user.email || '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+      setProfileImagePreview(user.profileImage || null)
+    }
+  }, [user])
+
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setMessage({ type: 'error', text: 'Image size should be less than 5MB' })
+        return
+      }
+      setProfileImage(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault()
+    setIsSaving(true)
+    setMessage({ type: '', text: '' })
+
+    try {
+      // Validate passwords if changing
+      if (profileData.newPassword) {
+        if (profileData.newPassword !== profileData.confirmPassword) {
+          setMessage({ type: 'error', text: 'New passwords do not match' })
+          setIsSaving(false)
+          return
+        }
+        if (profileData.newPassword.length < 6) {
+          setMessage({ type: 'error', text: 'Password must be at least 6 characters' })
+          setIsSaving(false)
+          return
+        }
+        if (!profileData.currentPassword) {
+          setMessage({ type: 'error', text: 'Current password is required to change password' })
+          setIsSaving(false)
+          return
+        }
+      }
+
+      const formData = {
+        name: profileData.name,
+        email: profileData.email,
+      }
+
+      if (profileData.currentPassword && profileData.newPassword) {
+        formData.currentPassword = profileData.currentPassword
+        formData.newPassword = profileData.newPassword
+      }
+
+      if (profileImage) {
+        formData.profileImage = profileImage
+      }
+
+      const response = await api.updateProfile(formData)
+      
+      // Update context with new user data
+      updateUser({
+        name: response.user?.name || profileData.name,
+        email: response.user?.email || profileData.email,
+        profileImage: response.user?.profileImage || profileImagePreview
+      })
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      
+      // Clear password fields
+      setProfileData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }))
+      setProfileImage(null)
+
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Failed to update profile' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const updateSetting = (key, value) => {
     setSettings(prev => ({
@@ -158,12 +270,13 @@ const Settings = () => {
   }
 
   const sections = [
-    { id: 'general', label: 'General',},
-    { id: 'reading', label: 'Reading Preferences',},
-    { id: 'notifications', label: 'Notifications',},
-    { id: 'privacy', label: 'Privacy',},
-    { id: 'goals', label: 'Reading Goals',},
-    { id: 'display', label: 'Display',}
+    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'general', label: 'General', icon: '⚙️' },
+    { id: 'reading', label: 'Reading Preferences', icon: '📚' },
+    { id: 'notifications', label: 'Notifications', icon: '🔔' },
+    { id: 'privacy', label: 'Privacy', icon: '🔒' },
+    { id: 'goals', label: 'Reading Goals', icon: '🎯' },
+    { id: 'display', label: 'Display', icon: '🎨' }
   ]
 
   const ToggleSwitch = ({ enabled, onChange }) => (
@@ -249,34 +362,169 @@ const Settings = () => {
         <div className="flex-1 min-w-0">
           <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 transition-colors">
             
+            {/* Profile Settings */}
+            {activeSection === 'profile' && (
+              <div className="p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">Profile Settings</h2>
+                
+                {/* Success/Error Message */}
+                {message.text && (
+                  <div className={`mb-4 p-3 rounded-lg flex items-start space-x-3 ${
+                    message.type === 'success' 
+                      ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800'
+                      : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800'
+                  }`}>
+                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      {message.type === 'success' ? (
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      ) : (
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      )}
+                    </svg>
+                    <p className="text-sm flex-1">{message.text}</p>
+                    <button onClick={() => setMessage({ type: '', text: '' })} className="text-gray-400 hover:text-gray-600">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  {/* Profile Image */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Profile Picture</label>
+                    <div className="flex items-center space-x-6">
+                      {profileImagePreview ? (
+                        <img 
+                          src={profileImagePreview} 
+                          alt="Profile" 
+                          className="w-24 h-24 rounded-full object-cover ring-4 ring-gray-200 dark:ring-slate-700"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-3xl ring-4 ring-gray-200 dark:ring-slate-700">
+                          {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                        </div>
+                      )}
+                      <div>
+                        <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Choose Image
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleProfileImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">JPG, PNG or GIF (max 5MB)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Name and Email */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        value={profileData.name}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Email</label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Change Password Section */}
+                  <div className="pt-6 border-t border-gray-200 dark:border-slate-700">
+                    <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-4">Change Password</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Current Password</label>
+                        <input
+                          type="password"
+                          value={profileData.currentPassword}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Leave blank to keep current password"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">New Password</label>
+                          <input
+                            type="password"
+                            value={profileData.newPassword}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, newPassword: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="At least 6 characters"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Confirm New Password</label>
+                          <input
+                            type="password"
+                            value={profileData.confirmPassword}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Confirm new password"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-slate-700">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      {isSaving ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Save Changes</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+            
             {/* General Settings */}
             {activeSection === 'general' && (
               <div className="p-4 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">General Settings</h2>
                 
                 <div className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Username</label>
-                      <input
-                        type="text"
-                        value={settings.username}
-                        onChange={(e) => updateSetting('username', e.target.value)}
-                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Email</label>
-                      <input
-                        type="email"
-                        value={settings.email}
-                        onChange={(e) => updateSetting('email', e.target.value)}
-                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400"
-                      />
-                    </div>
-                  </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Timezone</label>

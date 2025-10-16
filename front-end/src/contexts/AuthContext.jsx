@@ -24,12 +24,14 @@ export const AuthProvider = ({ children }) => {
       const userRole = localStorage.getItem('userRole')
       const userEmail = localStorage.getItem('userEmail')
       const userName = localStorage.getItem('userName')
+      const userProfileImage = localStorage.getItem('userProfileImage')
 
       if (userRole && userEmail) {
         setUser({
           email: userEmail,
           role: userRole,
-          name: userName || 'User'
+          name: userName || 'User',
+          profileImage: userProfileImage || null
         })
       }
     } catch (error) {
@@ -44,6 +46,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('userRole', userData.role)
     localStorage.setItem('userEmail', userData.email)
     localStorage.setItem('userName', userData.name)
+    if (userData.profileImage) {
+      localStorage.setItem('userProfileImage', userData.profileImage)
+    }
+  }
+
+  const updateUser = (userData) => {
+    setUser(prev => ({ ...prev, ...userData }))
+    if (userData.name) localStorage.setItem('userName', userData.name)
+    if (userData.email) localStorage.setItem('userEmail', userData.email)
+    if (userData.profileImage) {
+      localStorage.setItem('userProfileImage', userData.profileImage)
+    }
   }
 
   const logout = () => {
@@ -51,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userRole')
     localStorage.removeItem('userEmail')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userProfileImage')
   }
 
   const isAuthenticated = () => {
@@ -69,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
+    updateUser,
     isAuthenticated,
     isAdmin,
     isUser,

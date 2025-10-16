@@ -104,9 +104,17 @@ const SideBar = ({ isOpen, onClose, isCollapsed }) => {
       {/* User Profile Section */}
       <div className={`p-6 border-b border-white/10 ${isCollapsed ? 'flex justify-center' : ''}`}>
         <div className={`flex items-center ${isCollapsed ? 'flex-col space-y-2' : 'space-x-4'}`}>
-          <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
-            {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
-          </div>
+          {user?.profileImage ? (
+            <img 
+              src={user.profileImage} 
+              alt={user?.name || 'User'} 
+              className="w-12 h-12 rounded-full object-cover shadow-lg flex-shrink-0 ring-2 ring-white/20"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg flex-shrink-0">
+              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+            </div>
+          )}
           {!isCollapsed && (
             <div>
               <h3 className="font-semibold text-lg">{user?.name || 'User'}</h3>
