@@ -1,0 +1,33 @@
+# ============================================
+# .vercelignore - Files to exclude from deployment
+# ============================================
+
+# Dependencies (Vercel installs these automatically)
+node_modules
+
+# Environment files (set in Vercel dashboard)
+.env
+.env.local
+.env.production
+.env.development
+
+# Development files
+.vscode
+.idea
+
+# Documentation (optional - keep if you want docs on Vercel)
+# API_TESTING_GUIDE.md
+# BACKEND_MASTERY_GUIDE.md
+# BACKEND_MASTERY_PART2.md
+# QUICK_START.md
+
+# Testing files
+api-tests.http
+
+# Git files
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*

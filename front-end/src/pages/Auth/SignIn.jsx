@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
+import api from '../../services/api'
 
 const SignIn = () => {
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
+  const { login: authLogin } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -55,33 +58,27 @@ const SignIn = () => {
     setIsLoading(true)
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Call the real API
+      const response = await api.login({
+        email: formData.email,
+        password: formData.password
+      })
       
-      // Check for admin credentials
-      if (formData.email === 'admin@booksy.com' && formData.password === 'admin123') {
-        localStorage.setItem('userRole', 'admin')
-        localStorage.setItem('userEmail', formData.email)
-        localStorage.setItem('userName', 'Admin User')
-        // Force page reload to ensure auth context updates
-        window.location.href = '/admin'
-        return
-      } 
-      
-      // Check for regular user credentials
-      if (formData.email === 'user@booksy.com' && formData.password === 'user123') {
-        localStorage.setItem('userRole', 'user')
-        localStorage.setItem('userEmail', formData.email)
-        localStorage.setItem('userName', 'Regular User')
-        // Force page reload to ensure auth context updates
-        window.location.href = '/dashboard'
-        return
+      // Store user data
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user))
+        authLogin(response.user)
       }
       
-      // Invalid credentials
-      setErrors({ general: 'Invalid email or password. Use demo credentials below.' })
+      // Redirect based on role
+      if (response.user.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/dashboard')
+      }
+      
     } catch (error) {
-      setErrors({ general: 'Invalid email or password' })
+      setErrors({ general: error.message || 'Invalid email or password' })
     } finally {
       setIsLoading(false)
     }

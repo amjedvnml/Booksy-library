@@ -17,14 +17,59 @@ const app = express(); // Creates an instance of an Express application
 const PORT = process.env.PORT || 5000; // Get port from .env or use 5000 as default
 
 // -------- 4. CONNECT TO DATABASE --------
-connectDB(); // Establish connection to MongoDB
+// For local development, connect immediately
+if (process.env.NODE_ENV !== 'production') {
+    connectDB(); // Establish connection to MongoDB
+}
+
+// For serverless (Vercel), connect on first request
+app.use(async (req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        try {
+            await connectDB();
+        } catch (error) {
+            console.error('Database connection failed:', error);
+            return res.status(503).json({
+                success: false,
+                message: 'Database temporarily unavailable'
+            });
+        }
+    }
+    next();
+});
 
 // -------- 5. MIDDLEWARE --------
 // Middleware = functions that run BEFORE your route handlers
 // Think of them as security guards checking everyone before they enter
 
 // CORS Middleware - Allows requests from different origins (your frontend)
-app.use(cors());
+// Configure CORS to accept requests from your frontend
+const corsOptions = {
+    origin: function (origin, callback) {
+        // List of allowed origins (your frontend URLs)
+        const allowedOrigins = [
+            process.env.FRONTEND_URL,                    // Your production frontend
+            'http://localhost:3000',                     // React/Next.js dev server
+            'http://localhost:5173',                     // Vite dev server
+            'http://localhost:4200',                     // Angular dev server
+            'http://127.0.0.1:3000',                     // Alternative localhost
+            'http://127.0.0.1:5173',                     // Alternative localhost
+        ].filter(Boolean); // Remove undefined values
+
+        // Allow requests with no origin (like Postman, curl, mobile apps)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,                                   // Allow cookies and authentication headers
+    optionsSuccessStatus: 200,                           // For legacy browser support
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'],   // Allowed headers
+};
+
+app.use(cors(corsOptions));
 
 // JSON Parser Middleware - Converts incoming JSON data to JavaScript objects
 app.use(express.json());
@@ -94,10 +139,17 @@ app.use((err, req, res, next) => {
 });
 
 // -------- 8. START SERVER --------
-app.listen(PORT, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    console.log(`📍 Access server at: http://localhost:${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+        console.log(`📍 Access server at: http://localhost:${PORT}`);
+    });
+}
+
+// -------- 9. EXPORT FOR VERCEL SERVERLESS --------
+// Vercel uses this export to handle requests
+module.exports = app;
 
 // ============================================
 // DEEP DIVE EXPLANATIONS:

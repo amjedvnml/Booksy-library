@@ -6,21 +6,37 @@
 
 const mongoose = require('mongoose');
 
+// Connection state tracking for serverless
+let isConnected = false;
+
 // Function to connect to MongoDB
 const connectDB = async () => {
+    // Reuse existing connection in serverless environment
+    if (isConnected && mongoose.connection.readyState === 1) {
+        console.log('♻️ Using existing MongoDB connection');
+        return;
+    }
+
     try {
         // mongoose.connect() opens a connection to MongoDB
         // process.env.MONGODB_URI comes from .env file (keeps secrets safe)
-        const conn = await mongoose.connect(process.env.MONGODB_URI);
+        const conn = await mongoose.connect(process.env.MONGODB_URI, {
+            // Optimize for serverless
+            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+            socketTimeoutMS: 45000,
+        });
 
+        isConnected = true;
         // If successful, log the host name
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
         console.log(`📚 Database Name: ${conn.connection.name}`);
         
     } catch (error) {
-        // If connection fails, show error and exit
-        console.error(`❌ Error: ${error.message}`);
-        process.exit(1); // Exit with failure code
+        // If connection fails, log error but don't crash serverless function
+        console.error(`❌ MongoDB Connection Error: ${error.message}`);
+        isConnected = false;
+        // Don't use process.exit() in serverless - just throw the error
+        throw new Error(`Database connection failed: ${error.message}`);
     }
 };
 
