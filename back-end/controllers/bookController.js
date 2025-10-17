@@ -141,6 +141,21 @@ exports.getBook = async (req, res, next) => {
 // ============================================
 exports.createBook = async (req, res, next) => {
     try {
+        console.log('🔍 CREATE BOOK - Starting...');
+        console.log('- req.body exists?', !!req.body);
+        console.log('- req.body type:', typeof req.body);
+        console.log('- req.body:', JSON.stringify(req.body));
+        console.log('- req.user exists?', !!req.user);
+        
+        // CRITICAL: Check if req.body exists
+        if (!req.body || typeof req.body !== 'object') {
+            console.error('❌ req.body is undefined or not an object!');
+            return res.status(400).json({
+                success: false,
+                message: 'Request body is missing or invalid'
+            });
+        }
+        
         // SIMPLE FIX: Only add addedBy if req.user exists
         // This prevents the crash and allows book creation
         if (req.user) {
