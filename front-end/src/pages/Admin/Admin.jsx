@@ -123,19 +123,46 @@ const Admin = () => {
     }
   }
 
-  const handleAddUser = (e) => {
+  const handleAddUser = async (e) => {
     e.preventDefault()
-    const newUser = {
-      id: Date.now(),
-      ...userForm,
-      status: 'active',
-      booksRead: 0,
-      joinDate: new Date().toISOString(),
-      lastLogin: new Date().toISOString()
+    setLoading(true)
+    setError(null)
+    
+    try {
+      // Validate required fields
+      if (!userForm.name || !userForm.email || !userForm.password) {
+        throw new Error('Name, email, and password are required')
+      }
+      
+      console.log('Creating user:', userForm.email)
+      
+      // ✅ CORRECT: Call the backend API
+      const userData = {
+        name: userForm.name,
+        email: userForm.email,
+        password: userForm.password,
+        role: userForm.role
+      }
+      
+      await api.createUser(userData)
+      
+      alert('User created successfully!')
+      
+      // Reset form
+      setUserForm({ name: '', email: '', password: '', role: 'member' })
+      setShowUserForm(false)
+      
+      // ✅ After creating, fetch users again from database
+      await fetchUsers()
+      
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to create user'
+      setError(errorMessage)
+      alert('Error creating user: ' + errorMessage)
+      console.error('Error:', err)
+    } finally {
+      setLoading(false)
     }
-    setUsers([...users, newUser])
-    setUserForm({ name: '', email: '', password: '', role: 'member' })
-    setShowUserForm(false)
   }
 
   const handleAddBook = async (e) => {
