@@ -280,10 +280,16 @@ export const uploadProfileImage = async (imageFile) => {
 // =========================
 export const getAllBooks = async () => {
   try {
+    console.log('🌐 Fetching from:', `${API_BASE_URL}/books`)
     const response = await fetch(`${API_BASE_URL}/books`, {
       headers: getHeaders(true)
     })
-    return await handleResponse(response)
+    console.log('📡 Response status:', response.status)
+    const data = await handleResponse(response)
+    console.log('📦 Raw response data:', data)
+    console.log('📦 Response data type:', typeof data)
+    console.log('📦 Response data keys:', data ? Object.keys(data) : 'null')
+    return data
   } catch (error) {
     console.error('Get books failed:', error)
     throw error
@@ -420,12 +426,18 @@ export const returnBook = async (bookId) => {
 // =========================
 export const getUsers = async () => {
   try {
+    console.log('🌐 Fetching users from:', `${API_BASE_URL}/users`)
     const response = await fetch(`${API_BASE_URL}/users`, {
       headers: getHeaders(true)
     })
-    return await handleResponse(response)
+    console.log('📡 Users response status:', response.status)
+    const data = await handleResponse(response)
+    console.log('📦 Raw users data:', data)
+    console.log('📦 Users data type:', typeof data)
+    console.log('📦 Users data keys:', data ? Object.keys(data) : 'null')
+    return data
   } catch (error) {
-    console.error('Get users failed:', error)
+    console.error('❌ Get users failed:', error)
     throw error
   }
 }

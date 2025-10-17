@@ -27,18 +27,35 @@ const Admin = () => {
     title: '',
     author: '',
     pdfFile: null,
-    category: '',
-    totalCopies: '1',
+    language: 'English',
+    quantity: '1',
     pages: '',
-    publishYear: '',
     description: ''
   });
 
   const stats = {
     totalUsers: users.length,
-    activeUsers: users.filter(u => u.status === 'active').length,
+    // Count active users - handle different possible field names and values
+    // Active users are those who:
+    // 1. Have status === 'active', OR
+    // 2. Have isActive === true, OR
+    // 3. Don't have inactive/banned/deleted status (default to active)
+    activeUsers: users.filter(u => {
+      if (u.status) {
+        return u.status === 'active' || u.status === 'Active'
+      }
+      if (typeof u.isActive === 'boolean') {
+        return u.isActive === true
+      }
+      if (u.accountStatus) {
+        return u.accountStatus === 'active' || u.accountStatus === 'Active'
+      }
+      // If no status field exists, consider all users as active by default
+      // (exclude only explicitly inactive/banned/deleted users)
+      return !(u.status === 'inactive' || u.status === 'banned' || u.status === 'deleted')
+    }).length,
     totalBooks: books.length,
-    totalDownloads: books.reduce((sum, book) => sum + book.downloads, 0)
+    totalDownloads: books.reduce((sum, book) => sum + (book.downloads || 0), 0)
   }
 
   // Fetch books and users from API on component mount
@@ -51,11 +68,53 @@ const Admin = () => {
     setLoading(true)
     setError(null)
     try {
+      console.log('🔍 Fetching books...')
       const data = await api.getAllBooks()
-      setBooks(Array.isArray(data) ? data : data.books || [])
+      console.log('📚 Books data received:', data)
+      console.log('📚 Books data type:', typeof data)
+      console.log('📚 Books data keys:', Object.keys(data))
+      console.log('📚 Full data structure:', JSON.stringify(data, null, 2))
+      
+      // Try multiple possible structures
+      let booksArray = []
+      if (Array.isArray(data)) {
+        booksArray = data
+      } else if (data.books) {
+        booksArray = data.books
+      } else if (data.data) {
+        booksArray = Array.isArray(data.data) ? data.data : data.data.books || []
+      }
+      
+      console.log('📖 Books array:', booksArray)
+      console.log('📊 Number of books:', booksArray.length)
+      
+      if (booksArray.length > 0) {
+        console.log('📋 First book sample:', booksArray[0])
+        console.log('🔍 Book fields check:', {
+          hasCategory: 'category' in booksArray[0],
+          categoryValue: booksArray[0].category,
+          hasGenre: 'genre' in booksArray[0],
+          genreValue: booksArray[0].genre,
+          hasPdfFile: 'pdfFile' in booksArray[0],
+          pdfFileValue: booksArray[0].pdfFile,
+          hasPdfUrl: 'pdfUrl' in booksArray[0],
+          pdfUrlValue: booksArray[0].pdfUrl,
+          allKeys: Object.keys(booksArray[0])
+        })
+        
+        // Check if any books have category or pdfFile
+        const booksWithCategory = booksArray.filter(b => b.category || b.genre).length
+        const booksWithPdf = booksArray.filter(b => b.pdfFile || b.pdfUrl).length
+        console.log('📊 Books with category:', booksWithCategory, 'out of', booksArray.length)
+        console.log('📊 Books with PDF:', booksWithPdf, 'out of', booksArray.length)
+      } else {
+        console.warn('⚠️ Books array is empty! Check backend response structure.')
+      }
+      
+      setBooks(booksArray)
     } catch (err) {
       setError(err.message)
-      console.error('Error fetching books:', err)
+      console.error('❌ Error fetching books:', err)
     } finally {
       setLoading(false)
     }
@@ -65,11 +124,54 @@ const Admin = () => {
     setLoading(true)
     setError(null)
     try {
+      console.log('👥 Fetching users...')
       const data = await api.getUsers()
-      setUsers(Array.isArray(data) ? data : data.users || [])
+      console.log('👤 Users data received:', data)
+      console.log('👤 Users data type:', typeof data)
+      console.log('👤 Users data keys:', data ? Object.keys(data) : 'null')
+      console.log('👤 Full data structure:', JSON.stringify(data, null, 2))
+      
+      // Try multiple possible structures
+      let usersArray = []
+      if (Array.isArray(data)) {
+        usersArray = data
+      } else if (data.users) {
+        usersArray = data.users
+      } else if (data.data) {
+        usersArray = Array.isArray(data.data) ? data.data : data.data.users || []
+      }
+      
+      console.log('👥 Users array:', usersArray)
+      console.log('📊 Number of users:', usersArray.length)
+      
+      if (usersArray.length > 0) {
+        console.log('👤 First user sample:', usersArray[0])
+        console.log('🔍 User status field check:', {
+          hasStatus: 'status' in usersArray[0],
+          statusValue: usersArray[0].status,
+          hasIsActive: 'isActive' in usersArray[0],
+          isActiveValue: usersArray[0].isActive,
+          hasAccountStatus: 'accountStatus' in usersArray[0],
+          accountStatusValue: usersArray[0].accountStatus,
+          allKeys: Object.keys(usersArray[0])
+        })
+        
+        // Count active users for debugging
+        const activeCount = usersArray.filter(u => {
+          if (u.status) return u.status === 'active' || u.status === 'Active'
+          if (typeof u.isActive === 'boolean') return u.isActive === true
+          if (u.accountStatus) return u.accountStatus === 'active'
+          return !(u.status === 'inactive' || u.status === 'banned' || u.status === 'deleted')
+        }).length
+        console.log('✅ Active users count:', activeCount, 'out of', usersArray.length)
+      } else {
+        console.warn('⚠️ Users array is empty! Check backend response structure.')
+      }
+      
+      setUsers(usersArray)
     } catch (err) {
       setError(err.message)
-      console.error('Error fetching users:', err)
+      console.error('❌ Error fetching users:', err)
     } finally {
       setLoading(false)
     }
@@ -173,8 +275,8 @@ const Admin = () => {
     
     try {
       // Validate required fields
-      if (!bookForm.title || !bookForm.author || !bookForm.category || !bookForm.totalCopies) {
-        throw new Error('Title, Author, Category, and Total Copies are required')
+      if (!bookForm.title || !bookForm.author || !bookForm.quantity) {
+        throw new Error('Title, Author, and Quantity are required')
       }
       
       // Check if user is authenticated
@@ -188,10 +290,9 @@ const Admin = () => {
       const bookData = {
         title: bookForm.title,
         author: bookForm.author,
-        category: bookForm.category,
-        totalCopies: parseInt(bookForm.totalCopies) || 1,
+        language: bookForm.language || 'English',
+        quantity: parseInt(bookForm.quantity) || 1,
         pages: parseInt(bookForm.pages) || 0,
-        publishYear: parseInt(bookForm.publishYear) || new Date().getFullYear(),
         description: bookForm.description || '',
         pdfFile: bookForm.pdfFile
       }
@@ -202,7 +303,7 @@ const Admin = () => {
       alert('Book added successfully!')
       
       // Reset form and refresh books list
-      setBookForm({ title: '', author: '', pdfFile: null, category: '', totalCopies: '1', pages: '', publishYear: '', description: '' })
+      setBookForm({ title: '', author: '', pdfFile: null, language: 'English', quantity: '1', pages: '', description: '' })
       setShowBookForm(false)
       await fetchBooks()
     } catch (err) {
@@ -240,20 +341,23 @@ const Admin = () => {
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <div className="h-10 w-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex justify-between items-center py-4 sm:py-6">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center space-x-2 sm:space-x-4 hover:opacity-80 transition-opacity cursor-pointer group"
+            >
+              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Booksy Admin</h1>
-                <p className="text-sm text-gray-500 dark:text-slate-400">Library Management Dashboard</p>
+              <div className="text-left">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Booksy Admin</h1>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 hidden sm:block">Library Management Dashboard</p>
               </div>
-            </div>
+            </button>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Theme Toggle */}
               <button 
                 onClick={toggleTheme}
@@ -272,14 +376,8 @@ const Admin = () => {
               </button>
               
               <button
-                onClick={() => navigate('/dashboard')}
-                className="text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                View Library
-              </button>
-              <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base whitespace-nowrap"
               >
                 Logout
               </button>
@@ -367,24 +465,24 @@ const Admin = () => {
 
         {/* Tabs */}
         <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8">
+          <div className="border-b border-gray-200 dark:border-slate-700">
+            <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('users')}
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'users'
-                    ? 'text-emerald-600 border-b-2 border-emerald-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600 dark:border-emerald-400'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                 }`}
               >
                 Users Management
               </button>
               <button
                 onClick={() => setActiveTab('books')}
-                className={`py-2 px-1 text-sm font-medium transition-colors ${
+                className={`py-2 px-1 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === 'books'
-                    ? 'text-emerald-600 border-b-2 border-emerald-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-600 dark:border-emerald-400'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
                 }`}
               >
                 Books Management
@@ -488,60 +586,105 @@ const Admin = () => {
               </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-slate-800">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Books Read</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Join Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Last Login</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                  {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-                          <div className="text-sm text-gray-500 dark:text-slate-400">{user.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge status={user.role} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge status={user.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.booksRead}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {new Date(user.joinDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(user.lastLogin).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => toggleUserStatus(user.id || user._id)}
-                            className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
-                          >
-                            {user.role === 'admin' ? 'Make User' : 'Make Admin'}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.id || user._id)}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+              {loading && users.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="flex flex-col items-center space-y-4">
+                    <svg className="animate-spin h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-600 dark:text-slate-400">Loading users...</p>
+                  </div>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No users</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Get started by adding a new user.</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Books Read</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Join Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Last Login</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                    {users.map((user) => (
+                      <tr key={user._id || user.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              {user.profileImage ? (
+                                <img className="h-10 w-10 rounded-full object-cover" src={user.profileImage} alt={user.name} />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold">
+                                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name || 'N/A'}</div>
+                              <div className="text-sm text-gray-500 dark:text-slate-400">{user.email || 'N/A'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.role === 'admin' 
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' 
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                          }`}>
+                            {user.role || 'user'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.status === 'active' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
+                            {user.status || 'active'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {user.booksRead || user.borrowedBooks?.length || 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {user.joinDate || user.createdAt ? new Date(user.joinDate || user.createdAt).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          {user.lastLogin || user.updatedAt ? new Date(user.lastLogin || user.updatedAt).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              onClick={() => toggleUserStatus(user._id || user.id)}
+                              className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
+                            >
+                              {user.role === 'admin' ? 'Make User' : 'Make Admin'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user._id || user.id)}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
           </>
@@ -584,27 +727,27 @@ const Admin = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Category *
+                        Language *
                       </label>
                       <input
                         type="text"
                         required
-                        value={bookForm.category}
-                        onChange={(e) => setBookForm({...bookForm, category: e.target.value})}
+                        value={bookForm.language}
+                        onChange={(e) => setBookForm({...bookForm, language: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
-                        placeholder="Fiction"
+                        placeholder="English"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Total Copies *
+                        Quantity *
                       </label>
                       <input
                         type="number"
                         required
                         min="1"
-                        value={bookForm.totalCopies}
-                        onChange={(e) => setBookForm({...bookForm, totalCopies: e.target.value})}
+                        value={bookForm.quantity}
+                        onChange={(e) => setBookForm({...bookForm, quantity: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
                         placeholder="5"
                       />
@@ -654,19 +797,6 @@ const Admin = () => {
                         onChange={(e) => setBookForm({...bookForm, pages: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
                         placeholder="180"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Publish Year *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        value={bookForm.publishYear}
-                        onChange={(e) => setBookForm({...bookForm, publishYear: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
-                        placeholder="1925"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -745,28 +875,28 @@ const Admin = () => {
                   <thead className="bg-gray-50 dark:bg-slate-800">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Book</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Genre</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Language</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">PDF Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Downloads</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Rating</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Quantity</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Borrowed</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Pages</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Added Date</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {books.map((book) => (
-                    <tr key={book.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                    <tr key={book._id || book.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">{book.title}</div>
                           <div className="text-sm text-gray-500 dark:text-slate-400">{book.author}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.genre}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.category || book.genre || book.language || 'N/A'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          {book.pdfFile ? (
+                          {book.hasPDF || book.pdfFileName || book.pdfFile || book.pdfUrl || book.pdf ? (
                             <>
                               <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -783,24 +913,23 @@ const Admin = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge status={book.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{book.downloads}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        <div className="flex items-center">
-                          <span className="text-yellow-400 mr-1">★</span>
-                          {book.rating}
-                        </div>
+                        {book.quantity || book.totalCopies || 0}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {new Date(book.addedDate).toLocaleDateString()}
+                        {book.borrowedCount || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {book.pages || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {book.addedDate || book.createdAt ? new Date(book.addedDate || book.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <button className="text-emerald-600 hover:text-emerald-900">Edit</button>
                           <button 
-                            onClick={() => deleteBook(book.id)}
+                            onClick={() => deleteBook(book._id || book.id)}
                             className="text-red-600 hover:text-red-900"
                           >
                             Delete
