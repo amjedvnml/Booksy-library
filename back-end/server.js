@@ -111,6 +111,24 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Debug route - Check environment variables (TEMPORARY - Remove after debugging)
+app.get('/api/debug/env', (req, res) => {
+    res.json({
+        environment: process.env.NODE_ENV,
+        envVarsPresent: {
+            JWT_SECRET: !!process.env.JWT_SECRET,
+            JWT_EXPIRE: !!process.env.JWT_EXPIRE,
+            MONGODB_URI: !!process.env.MONGODB_URI,
+            FRONTEND_URL: !!process.env.FRONTEND_URL,
+            PORT: !!process.env.PORT
+        },
+        // Show first 10 chars of JWT_SECRET to verify it's correct
+        JWT_SECRET_preview: process.env.JWT_SECRET ? process.env.JWT_SECRET.substring(0, 10) + '...' : 'NOT SET',
+        FRONTEND_URL_value: process.env.FRONTEND_URL || 'NOT SET',
+        note: 'This endpoint should be removed after debugging'
+    });
+});
+
 // Mount routers
 // All routes in bookRoutes will be prefixed with /api/books
 app.use('/api/books', bookRoutes);
