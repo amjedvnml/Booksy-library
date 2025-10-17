@@ -1,15 +1,19 @@
-# 🔄 Vercel Deployment Trigger
+# 🔄 Vercel Deployment Trigger - CRITICAL FIX
 
-This file triggers Vercel to redeploy with the latest changes including the `/api/auth/profile` route.
+This file triggers Vercel to redeploy with the CRITICAL book creation fix.
 
-## Latest Update:
-- Added `PUT /api/auth/profile` route for updating user profile with avatar support
-- Route is properly configured in `routes/auth.js`
-- Controller updated in `controllers/authController.js`
+## CRITICAL Latest Update:
+- Fixed: "Cannot set properties of undefined (setting 'addedBy')" error
+- Solution: Middleware now ensures req.user.id property always exists
+- Commit: e722adf
+- Multiple fallbacks added in createBook controller
 
 ## Deployment Status:
 - Committed: ✅
 - Pushed to GitHub: ✅
-- Waiting for Vercel auto-deploy: ⏳
+- Needs Vercel redeploy: ⚠️
+- Updated: October 17, 2025
 
-After this commit, Vercel will automatically redeploy the backend with all the latest changes.
+After this commit, Vercel will automatically redeploy the backend with the critical fix.
+
+**This MUST be deployed to fix book creation errors!**
