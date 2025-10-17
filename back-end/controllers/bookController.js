@@ -196,10 +196,25 @@ exports.createBook = async (req, res, next) => {
             addedBy: req.body.addedBy || 'Not set'
         });
 
+        console.log('🔍 Full req.body before save:', JSON.stringify(req.body, null, 2));
+
         // Create book in database
         const book = await Book.create(req.body);
         
-        console.log('✅ Book created successfully:', book._id);
+        console.log('✅ Book created successfully!');
+        console.log('- Book ID:', book._id);
+        console.log('- Title:', book.title);
+        console.log('- Author:', book.author);
+        console.log('- Total copies:', book.totalCopies);
+        console.log('- Available copies:', book.availableCopies);
+        
+        // Verify it was saved to database
+        const savedBook = await Book.findById(book._id);
+        if (savedBook) {
+            console.log('✅ VERIFIED: Book exists in database');
+        } else {
+            console.error('❌ WARNING: Book not found in database after creation!');
+        }
         
         res.status(201).json({
             success: true,

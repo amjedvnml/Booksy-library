@@ -48,6 +48,29 @@ router.get('/search/:query', searchBooks);
 // @access  Public
 router.get('/genre/:genre', getBooksByGenre);
 
+// @route   GET /api/books/debug/count
+// @desc    Debug: Get total book count and recent books
+// @access  Public (for debugging)
+router.get('/debug/count', async (req, res) => {
+    try {
+        const Book = require('../models/Book');
+        const total = await Book.countDocuments();
+        const recent = await Book.find().sort('-createdAt').limit(5).select('title author createdAt');
+        
+        res.json({
+            success: true,
+            totalBooks: total,
+            recentBooks: recent,
+            message: `Found ${total} books in database`
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // ============================================
 // PROTECTED ROUTES - Require authentication
 // ============================================
