@@ -141,41 +141,50 @@ exports.getBook = async (req, res, next) => {
 // ============================================
 exports.createBook = async (req, res, next) => {
     try {
-        // Debug logging
-        console.log('🔍 CREATE BOOK - Debug Info:');
-        console.log('- req.user exists?', !!req.user);
-        console.log('- req.user type:', typeof req.user);
-        console.log('- req.user value:', JSON.stringify(req.user));
-        console.log('- req.headers.authorization:', req.headers.authorization ? 'Present' : 'Missing');
-        console.log('- req.body:', req.body);
-        
-        // Check if user exists (should be set by protect middleware)
+        // CRITICAL: Check user authentication FIRST
         if (!req.user) {
-            console.log('❌ CREATE BOOK - req.user is undefined!');
+            console.error('❌ CRITICAL ERROR: req.user is undefined!');
+            console.error('- Headers:', JSON.stringify(req.headers));
+            console.error('- Authorization:', req.headers.authorization);
             return res.status(401).json({
                 success: false,
-                message: 'User not authenticated. Please login and try again.'
+                message: 'Authentication failed. Please login again.',
+                debug: {
+                    userExists: false,
+                    headers: !!req.headers.authorization
+                }
             });
         }
+
+        console.log('✅ User authenticated:', {
+            id: req.user.id || req.user._id,
+            email: req.user.email,
+            role: req.user.role
+        });
+
+        // Get user ID (support both .id and ._id)
+        const userId = req.user.id || req.user._id || req.user.toString();
         
-        // Check if req.user has id property
-        if (!req.user.id && !req.user._id) {
-            console.log('❌ CREATE BOOK - req.user has no id property!');
-            console.log('req.user keys:', Object.keys(req.user));
+        if (!userId) {
+            console.error('❌ No user ID found:', req.user);
             return res.status(401).json({
                 success: false,
-                message: 'User authentication data is incomplete.'
+                message: 'User ID missing from authentication data'
             });
         }
-        
-        // Add user who created the book (try both .id and ._id)
-        const userId = req.user.id || req.user._id;
-        console.log('✅ Using user ID:', userId);
+
+        // Add user who created the book
         req.body.addedBy = userId;
         
+        console.log('📝 Creating book with data:', {
+            title: req.body.title,
+            author: req.body.author,
+            addedBy: userId
+        });
+
         // Create book in database
-        console.log('💾 Creating book in database...');
         const book = await Book.create(req.body);
+        
         console.log('✅ Book created successfully:', book._id);
         
         res.status(201).json({

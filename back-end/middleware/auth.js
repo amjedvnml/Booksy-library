@@ -67,6 +67,13 @@ exports.protect = async (req, res, next) => {
                 });
             }
             
+            // CRITICAL: Ensure req.user.id exists (Mongoose documents use _id)
+            // Add .id property for easier access in controllers
+            if (!req.user.id && req.user._id) {
+                req.user.id = req.user._id.toString();
+                console.log('- Added req.user.id property:', req.user.id);
+            }
+            
             // Check if user is active
             if (!req.user.isActive) {
                 console.log('❌ PROTECT MIDDLEWARE - User account inactive');
@@ -77,7 +84,8 @@ exports.protect = async (req, res, next) => {
             }
             
             console.log('✅ PROTECT MIDDLEWARE - Success! Calling next()');
-            
+            console.log('✅ req.user.id =', req.user.id);
+            console.log('✅ req.user._id =', req.user._id);            
             // -------- PASS CONTROL TO NEXT MIDDLEWARE --------
             next();
             
