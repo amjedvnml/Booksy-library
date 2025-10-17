@@ -141,25 +141,51 @@ exports.getBook = async (req, res, next) => {
 // ============================================
 exports.createBook = async (req, res, next) => {
     try {
-        // Debug logging
-        console.log('🔍 CREATE BOOK - Debug Info:');
-        console.log('- req.user exists?', !!req.user);
-        console.log('- req.user:', req.user);
-        console.log('- req.body:', req.body);
-        
-        // Check if user exists (should be set by protect middleware)
+        // CRITICAL: Check user authentication FIRST
         if (!req.user) {
+            console.error('❌ CRITICAL ERROR: req.user is undefined!');
+            console.error('- Headers:', JSON.stringify(req.headers));
+            console.error('- Authorization:', req.headers.authorization);
             return res.status(401).json({
                 success: false,
-                message: 'User not authenticated. Please login and try again.'
+                message: 'Authentication failed. Please login again.',
+                debug: {
+                    userExists: false,
+                    headers: !!req.headers.authorization
+                }
             });
         }
+
+        console.log('✅ User authenticated:', {
+            id: req.user.id || req.user._id,
+            email: req.user.email,
+            role: req.user.role
+        });
+
+        // Get user ID (support both .id and ._id)
+        const userId = req.user.id || req.user._id || req.user.toString();
         
+        if (!userId) {
+            console.error('❌ No user ID found:', req.user);
+            return res.status(401).json({
+                success: false,
+                message: 'User ID missing from authentication data'
+            });
+        }
+
         // Add user who created the book
-        req.body.addedBy = req.user.id; // From auth middleware
+        req.body.addedBy = userId;
         
+        console.log('📝 Creating book with data:', {
+            title: req.body.title,
+            author: req.body.author,
+            addedBy: userId
+        });
+
         // Create book in database
         const book = await Book.create(req.body);
+        
+        console.log('✅ Book created successfully:', book._id);
         
         res.status(201).json({
             success: true,
@@ -168,6 +194,9 @@ exports.createBook = async (req, res, next) => {
         });
         
     } catch (error) {
+        console.error('❌ CREATE BOOK ERROR:', error.message);
+        console.error('Error stack:', error.stack);
+        
         // Handle duplicate ISBN error
         if (error.code === 11000) {
             return res.status(400).json({
@@ -186,7 +215,12 @@ exports.createBook = async (req, res, next) => {
             });
         }
         
-        next(error);
+        // Return detailed error information
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Server error creating book',
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
