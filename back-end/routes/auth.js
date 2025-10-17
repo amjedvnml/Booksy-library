@@ -43,7 +43,12 @@ router.post('/login', login);
 // @access  Private
 router.get('/me', protect, getMe);
 
-// @route   PUT /api/auth/updateprofile
+// @route   PUT /api/auth/profile
+// @desc    Update user profile (name, phone, address, avatar)
+// @access  Private
+router.put('/profile', protect, updateProfile);
+
+// @route   PUT /api/auth/updateprofile (deprecated - use /profile instead)
 // @desc    Update user profile (name, phone, address)
 // @access  Private
 router.put('/updateprofile', protect, updateProfile);
