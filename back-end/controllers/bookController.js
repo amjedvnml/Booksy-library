@@ -142,39 +142,57 @@ exports.getBook = async (req, res, next) => {
 exports.createBook = async (req, res, next) => {
     try {
         console.log('🔍 CREATE BOOK - Starting...');
+        console.log('- Content-Type:', req.headers['content-type']);
         console.log('- req.body exists?', !!req.body);
         console.log('- req.body type:', typeof req.body);
-        console.log('- req.body:', JSON.stringify(req.body));
+        console.log('- req.body keys:', Object.keys(req.body || {}));
+        console.log('- req.file exists?', !!req.file);
         console.log('- req.user exists?', !!req.user);
         
-        // CRITICAL: Check if req.body exists
-        if (!req.body || typeof req.body !== 'object') {
-            console.error('❌ req.body is undefined or not an object!');
+        // Check if we have any data (either body or file)
+        const hasBody = req.body && Object.keys(req.body).length > 0;
+        const hasFile = req.file;
+        
+        if (!hasBody && !hasFile) {
+            console.error('❌ No data received - neither body nor file!');
             return res.status(400).json({
                 success: false,
-                message: 'Request body is missing or invalid'
+                message: 'Request must include book data. For file uploads, use multipart/form-data with fields: title, author, isbn, category, totalCopies, and optional pdfFile.'
             });
         }
         
-        // SIMPLE FIX: Only add addedBy if req.user exists
-        // This prevents the crash and allows book creation
+        console.log('📋 Book data:', req.body);
+        
+        // Handle uploaded PDF file
+        if (req.file) {
+            console.log('📁 PDF file uploaded:', {
+                filename: req.file.originalname,
+                size: req.file.size,
+                mimetype: req.file.mimetype
+            });
+            
+            // Store file info (you can later upload to cloud storage)
+            req.body.pdfFileName = req.file.originalname;
+            req.body.pdfSize = req.file.size;
+            req.body.hasPDF = true;
+            // For now, we're storing in memory. In production, upload to S3/Cloudinary
+            // req.body.pdfBuffer = req.file.buffer; // Don't store buffer in MongoDB
+        }
+        
+        // Add the user who created this book
         if (req.user) {
             const userId = req.user.id || req.user._id || req.user.toString();
             if (userId) {
                 req.body.addedBy = userId;
                 console.log('✅ User authenticated, adding addedBy:', userId);
-            } else {
-                console.log('⚠️ req.user exists but no ID found');
             }
-        } else {
-            console.log('⚠️ req.user is undefined - creating book without addedBy');
-            // Don't crash - just create book without addedBy
-            // This allows book creation even if authentication fails
         }
 
         console.log('📝 Creating book with data:', {
             title: req.body.title,
             author: req.body.author,
+            hasPDF: req.body.hasPDF || false,
+            pdfFileName: req.body.pdfFileName || 'none',
             addedBy: req.body.addedBy || 'Not set'
         });
 

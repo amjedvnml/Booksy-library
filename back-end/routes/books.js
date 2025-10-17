@@ -22,6 +22,7 @@ const {
 
 // Import middleware
 const { protect, authorize } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 // ============================================
 // PUBLIC ROUTES - No authentication required
@@ -52,9 +53,10 @@ router.get('/genre/:genre', getBooksByGenre);
 // ============================================
 
 // @route   POST /api/books
-// @desc    Create new book
+// @desc    Create new book (with optional PDF file)
 // @access  Private (Librarian/Admin only)
-router.post('/', protect, authorize('librarian', 'admin'), createBook);
+// Accepts multipart/form-data with optional 'pdfFile' field
+router.post('/', protect, authorize('librarian', 'admin'), upload.single('pdfFile'), createBook);
 
 // @route   PUT /api/books/:id
 // @desc    Update book

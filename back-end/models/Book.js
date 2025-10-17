@@ -106,6 +106,24 @@ const bookSchema = new mongoose.Schema(
             default: 'no-image.jpg'
         },
         
+        // -------- PDF FILE --------
+        hasPDF: {
+            type: Boolean,
+            default: false
+        },
+        
+        pdfFileName: {
+            type: String              // Original filename
+        },
+        
+        pdfSize: {
+            type: Number              // File size in bytes
+        },
+        
+        pdfUrl: {
+            type: String              // Cloud storage URL (S3, Cloudinary, etc.)
+        },
+        
         // -------- USER WHO ADDED --------
         addedBy: {
             type: mongoose.Schema.Types.ObjectId,  // Reference to User model
