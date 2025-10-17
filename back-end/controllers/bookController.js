@@ -144,22 +144,39 @@ exports.createBook = async (req, res, next) => {
         // Debug logging
         console.log('🔍 CREATE BOOK - Debug Info:');
         console.log('- req.user exists?', !!req.user);
-        console.log('- req.user:', req.user);
+        console.log('- req.user type:', typeof req.user);
+        console.log('- req.user value:', JSON.stringify(req.user));
+        console.log('- req.headers.authorization:', req.headers.authorization ? 'Present' : 'Missing');
         console.log('- req.body:', req.body);
         
         // Check if user exists (should be set by protect middleware)
         if (!req.user) {
+            console.log('❌ CREATE BOOK - req.user is undefined!');
             return res.status(401).json({
                 success: false,
                 message: 'User not authenticated. Please login and try again.'
             });
         }
         
-        // Add user who created the book
-        req.body.addedBy = req.user.id; // From auth middleware
+        // Check if req.user has id property
+        if (!req.user.id && !req.user._id) {
+            console.log('❌ CREATE BOOK - req.user has no id property!');
+            console.log('req.user keys:', Object.keys(req.user));
+            return res.status(401).json({
+                success: false,
+                message: 'User authentication data is incomplete.'
+            });
+        }
+        
+        // Add user who created the book (try both .id and ._id)
+        const userId = req.user.id || req.user._id;
+        console.log('✅ Using user ID:', userId);
+        req.body.addedBy = userId;
         
         // Create book in database
+        console.log('💾 Creating book in database...');
         const book = await Book.create(req.body);
+        console.log('✅ Book created successfully:', book._id);
         
         res.status(201).json({
             success: true,
@@ -168,6 +185,9 @@ exports.createBook = async (req, res, next) => {
         });
         
     } catch (error) {
+        console.error('❌ CREATE BOOK ERROR:', error.message);
+        console.error('Error stack:', error.stack);
+        
         // Handle duplicate ISBN error
         if (error.code === 11000) {
             return res.status(400).json({
@@ -186,7 +206,12 @@ exports.createBook = async (req, res, next) => {
             });
         }
         
-        next(error);
+        // Return detailed error information
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Server error creating book',
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
