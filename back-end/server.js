@@ -54,6 +54,7 @@ const corsOptions = {
             'http://localhost:4200',                     // Angular dev server
             'http://127.0.0.1:3000',                     // Alternative localhost
             'http://127.0.0.1:5173',                     // Alternative localhost
+            'http://booksy-library.vercel.app'          // main deployed frontend
         ].filter(Boolean); // Remove undefined values
 
         // Allow requests with no origin (like Postman, curl, mobile apps)
@@ -85,6 +86,7 @@ app.use((req, res, next) => {
 // Import route files
 const bookRoutes = require('./routes/books');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 
 // Root route - Just to test if server is running
 app.get('/', (req, res) => {
@@ -134,6 +136,8 @@ app.get('/api/debug/env', (req, res) => {
 app.use('/api/books', bookRoutes);
 // All routes in authRoutes will be prefixed with /api/auth
 app.use('/api/auth', authRoutes);
+// All routes in userRoutes will be prefixed with /api/users
+app.use('/api/users', userRoutes);
 
 // -------- 7. ERROR HANDLING MIDDLEWARE --------
 // This catches any errors that occur in your routes
