@@ -26,8 +26,9 @@ const bookSchema = new mongoose.Schema(
         isbn: {
             type: String,
             unique: true,              // No two books can have same ISBN
-            sparse: true,              // Allows multiple null values
-            trim: true
+            sparse: true,              // Allows multiple null/undefined values (books without ISBN)
+            trim: true,
+            default: null              // Optional - books can exist without ISBN
         },
         
         // -------- DESCRIPTION --------
@@ -104,6 +105,24 @@ const bookSchema = new mongoose.Schema(
         coverImage: {
             type: String,              // URL to cover image
             default: 'no-image.jpg'
+        },
+        
+        // -------- PDF FILE --------
+        hasPDF: {
+            type: Boolean,
+            default: false
+        },
+        
+        pdfFileName: {
+            type: String              // Original filename
+        },
+        
+        pdfSize: {
+            type: Number              // File size in bytes
+        },
+        
+        pdfUrl: {
+            type: String              // Cloud storage URL (S3, Cloudinary, etc.)
         },
         
         // -------- USER WHO ADDED --------

@@ -27,11 +27,12 @@ const Admin = () => {
     title: '',
     author: '',
     pdfFile: null,
-    genre: '',
+    category: '',
+    totalCopies: '1',
     pages: '',
     publishYear: '',
     description: ''
-  })
+  });
 
   const stats = {
     totalUsers: users.length,
@@ -172,8 +173,8 @@ const Admin = () => {
     
     try {
       // Validate required fields
-      if (!bookForm.title || !bookForm.author) {
-        throw new Error('Title and Author are required')
+      if (!bookForm.title || !bookForm.author || !bookForm.category || !bookForm.totalCopies) {
+        throw new Error('Title, Author, Category, and Total Copies are required')
       }
       
       // Check if user is authenticated
@@ -187,7 +188,8 @@ const Admin = () => {
       const bookData = {
         title: bookForm.title,
         author: bookForm.author,
-        genre: bookForm.genre,
+        category: bookForm.category,
+        totalCopies: parseInt(bookForm.totalCopies) || 1,
         pages: parseInt(bookForm.pages) || 0,
         publishYear: parseInt(bookForm.publishYear) || new Date().getFullYear(),
         description: bookForm.description || '',
@@ -200,7 +202,7 @@ const Admin = () => {
       alert('Book added successfully!')
       
       // Reset form and refresh books list
-      setBookForm({ title: '', author: '', pdfFile: null, genre: '', pages: '', publishYear: '', description: '' })
+      setBookForm({ title: '', author: '', pdfFile: null, category: '', totalCopies: '1', pages: '', publishYear: '', description: '' })
       setShowBookForm(false)
       await fetchBooks()
     } catch (err) {
@@ -582,15 +584,29 @@ const Admin = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Genre *
+                        Category *
                       </label>
                       <input
                         type="text"
                         required
-                        value={bookForm.genre}
-                        onChange={(e) => setBookForm({...bookForm, genre: e.target.value})}
+                        value={bookForm.category}
+                        onChange={(e) => setBookForm({...bookForm, category: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
                         placeholder="Fiction"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Total Copies *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={bookForm.totalCopies}
+                        onChange={(e) => setBookForm({...bookForm, totalCopies: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-slate-800 dark:text-white"
+                        placeholder="5"
                       />
                     </div>
                     <div className="md:col-span-2">
