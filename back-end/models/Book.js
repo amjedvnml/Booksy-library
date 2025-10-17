@@ -27,8 +27,8 @@ const bookSchema = new mongoose.Schema(
             type: String,
             unique: true,              // No two books can have same ISBN
             sparse: true,              // Allows multiple null/undefined values (books without ISBN)
-            trim: true,
-            default: null              // Optional - books can exist without ISBN
+            trim: true
+            // NO default - let it be undefined if not provided
         },
         
         // -------- DESCRIPTION --------
@@ -143,6 +143,7 @@ const bookSchema = new mongoose.Schema(
 // Indexes make queries faster (like book index in real library)
 bookSchema.index({ title: 'text', author: 'text', description: 'text' }); // Text search
 bookSchema.index({ genre: 1, available: 1 }); // Sort by genre and availability
+bookSchema.index({ isbn: 1 }, { unique: true, sparse: true }); // ISBN - allows multiple books without ISBN
 
 // -------- VIRTUAL PROPERTIES --------
 // Virtuals are computed properties (not stored in database)
