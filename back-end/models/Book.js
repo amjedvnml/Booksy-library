@@ -26,8 +26,9 @@ const bookSchema = new mongoose.Schema(
         isbn: {
             type: String,
             unique: true,              // No two books can have same ISBN
-            sparse: true,              // Allows multiple null values
-            trim: true
+            sparse: true,              // Allows multiple null/undefined values (books without ISBN)
+            trim: true,
+            default: null              // Optional - books can exist without ISBN
         },
         
         // -------- DESCRIPTION --------

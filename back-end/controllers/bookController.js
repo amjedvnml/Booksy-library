@@ -157,7 +157,7 @@ exports.createBook = async (req, res, next) => {
             console.error('❌ No data received - neither body nor file!');
             return res.status(400).json({
                 success: false,
-                message: 'Request must include book data. For file uploads, use multipart/form-data with fields: title, author, isbn, category, totalCopies, and optional pdfFile.'
+                message: 'Request must include book data. Required fields: title, author. Optional fields: isbn, category, totalCopies, pdfFile (file upload).'
             });
         }
         
