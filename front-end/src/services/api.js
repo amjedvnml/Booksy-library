@@ -430,6 +430,27 @@ export const getUsers = async () => {
   }
 }
 
+export const createUser = async (userData) => {
+  try {
+    console.log('Creating user:', userData.email)
+    
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(userData)
+    })
+    
+    console.log('Create user response status:', response.status)
+    const result = await handleResponse(response)
+    console.log('User created successfully:', result)
+    
+    return result
+  } catch (error) {
+    console.error('Create user failed:', error)
+    throw error
+  }
+}
+
 export const updateUserRole = async (userId, role) => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
@@ -487,6 +508,7 @@ const api = {
   
   // User Management (Admin)
   getUsers,
+  createUser,
   updateUserRole,
   deleteUser
 }
