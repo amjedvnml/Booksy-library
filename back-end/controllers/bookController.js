@@ -179,6 +179,12 @@ exports.createBook = async (req, res, next) => {
             // req.body.pdfBuffer = req.file.buffer; // Don't store buffer in MongoDB
         }
         
+        // Remove ISBN if it's empty (to allow multiple books without ISBN)
+        if (!req.body.isbn || req.body.isbn.trim() === '') {
+            delete req.body.isbn;
+            console.log('⚠️ ISBN is empty - removing from data (allows multiple books without ISBN)');
+        }
+        
         // Add the user who created this book
         if (req.user) {
             const userId = req.user.id || req.user._id || req.user.toString();
