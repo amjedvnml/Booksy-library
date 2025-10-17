@@ -34,6 +34,83 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 });
 
 // ============================================
+// @route   POST /api/users
+// @desc    Create new user (Admin only)
+// @access  Private (Admin only)
+// ============================================
+router.post('/', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { name, email, password, phone, address, role } = req.body;
+    
+    console.log('🔍 Creating user - Request body:', { name, email, role });
+    
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email, and password'
+      });
+    }
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log('❌ User already exists:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+    
+    // Create user with specified role or default to 'user'
+    const userData = {
+      name,
+      email,
+      password, // Will be auto-hashed by pre-save middleware
+      phone,
+      address,
+      role: role || 'user' // Admin can set role during creation
+    };
+    
+    console.log('💾 Saving user to database...');
+    const user = await User.create(userData);
+    console.log('✅ User created successfully:', user._id);
+    
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        membershipNumber: user.membershipNumber,
+        isActive: user.isActive,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('❌ Create user error:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation Error',
+        errors: messages
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error creating user',
+      error: error.message
+    });
+  }
+});
+
+// ============================================
 // @route   GET /api/users/:id
 // @desc    Get single user by ID
 // @access  Private (Admin only)
