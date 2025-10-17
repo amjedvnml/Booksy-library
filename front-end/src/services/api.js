@@ -416,6 +416,48 @@ export const returnBook = async (bookId) => {
 }
 
 // =========================
+// User Management APIs (Admin Only)
+// =========================
+export const getUsers = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: getHeaders(true)
+    })
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('Get users failed:', error)
+    throw error
+  }
+}
+
+export const updateUserRole = async (userId, role) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify({ role })
+    })
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('Update user role failed:', error)
+    throw error
+  }
+}
+
+export const deleteUser = async (userId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
+    })
+    return await handleResponse(response)
+  } catch (error) {
+    console.error('Delete user failed:', error)
+    throw error
+  }
+}
+
+// =========================
 // Export all APIs
 // =========================
 const api = {
@@ -441,7 +483,12 @@ const api = {
   
   // Borrowing
   borrowBook,
-  returnBook
+  returnBook,
+  
+  // User Management (Admin)
+  getUsers,
+  updateUserRole,
+  deleteUser
 }
 
 export default api

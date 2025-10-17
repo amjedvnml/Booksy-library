@@ -40,9 +40,10 @@ const Admin = () => {
     totalDownloads: books.reduce((sum, book) => sum + book.downloads, 0)
   }
 
-  // Fetch books from API on component mount
+  // Fetch books and users from API on component mount
   useEffect(() => {
     fetchBooks()
+    fetchUsers()
   }, [])
 
   const fetchBooks = async () => {
@@ -59,22 +60,54 @@ const Admin = () => {
     }
   }
 
+  const fetchUsers = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await api.getUsers()
+      setUsers(Array.isArray(data) ? data : data.users || [])
+    } catch (err) {
+      setError(err.message)
+      console.error('Error fetching users:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogout = () => {
     api.logout()
     navigate('/signin')
   }
 
-  const toggleUserStatus = (userId) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, status: user.status === 'active' ? 'suspended' : 'active' }
-        : user
-    ))
+  const toggleUserStatus = async (userId) => {
+    try {
+      const user = users.find(u => (u.id || u._id) === userId)
+      const newRole = user.role === 'admin' ? 'user' : 'admin'
+      await api.updateUserRole(userId, newRole)
+      
+      // Update local state
+      setUsers(users.map(user => 
+        (user.id || user._id) === userId 
+          ? { ...user, role: newRole }
+          : user
+      ))
+      alert('User role updated successfully!')
+    } catch (err) {
+      alert('Error updating user role: ' + err.message)
+      console.error('Error:', err)
+    }
   }
 
-  const deleteUser = (userId) => {
+  const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user.id !== userId))
+      try {
+        await api.deleteUser(userId)
+        setUsers(users.filter(user => (user.id || user._id) !== userId))
+        alert('User deleted successfully!')
+      } catch (err) {
+        alert('Error deleting user: ' + err.message)
+        console.error('Error:', err)
+      }
     }
   }
 
@@ -463,14 +496,14 @@ const Admin = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <button
-                            onClick={() => toggleUserStatus(user.id)}
-                            className="text-emerald-600 hover:text-emerald-900"
+                            onClick={() => toggleUserStatus(user.id || user._id)}
+                            className="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                           >
-                            {user.status === 'active' ? 'Suspend' : 'Activate'}
+                            {user.role === 'admin' ? 'Make User' : 'Make Admin'}
                           </button>
                           <button
-                            onClick={() => deleteUser(user.id)}
-                            className="text-red-600 hover:text-red-900"
+                            onClick={() => handleDeleteUser(user.id || user._id)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                           >
                             Delete
                           </button>
