@@ -108,28 +108,51 @@ const Admin = () => {
   const handleAddBook = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
     
     try {
+      // Validate required fields
+      if (!bookForm.title || !bookForm.author) {
+        throw new Error('Title and Author are required')
+      }
+      
+      // Check if user is authenticated
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('You must be logged in to add books. Please sign in again.')
+      }
+      
+      console.log('Adding book:', bookForm.title)
+      
       const bookData = {
         title: bookForm.title,
         author: bookForm.author,
         genre: bookForm.genre,
-        pages: parseInt(bookForm.pages),
-        publishYear: parseInt(bookForm.publishYear),
-        description: bookForm.description,
+        pages: parseInt(bookForm.pages) || 0,
+        publishYear: parseInt(bookForm.publishYear) || new Date().getFullYear(),
+        description: bookForm.description || '',
         pdfFile: bookForm.pdfFile
       }
       
-      await api.createBook(bookData)
+      const result = await api.createBook(bookData)
+      console.log('Book created:', result)
+      
       alert('Book added successfully!')
       
       // Reset form and refresh books list
       setBookForm({ title: '', author: '', pdfFile: null, genre: '', pages: '', publishYear: '', description: '' })
       setShowBookForm(false)
-      fetchBooks()
+      await fetchBooks()
     } catch (err) {
-      alert('Error adding book: ' + err.message)
+      const errorMessage = err.message || 'Failed to add book'
+      setError(errorMessage)
+      alert('Error adding book: ' + errorMessage)
       console.error('Error:', err)
+      
+      // If authentication error, suggest re-login
+      if (errorMessage.includes('logged in') || errorMessage.includes('token') || errorMessage.includes('authentication')) {
+        console.error('Authentication issue detected. User may need to sign in again.')
+      }
     } finally {
       setLoading(false)
     }

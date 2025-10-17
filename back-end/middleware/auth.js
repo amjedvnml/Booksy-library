@@ -13,6 +13,9 @@ exports.protect = async (req, res, next) => {
     try {
         let token;
         
+        console.log('🔐 PROTECT MIDDLEWARE - Start');
+        console.log('- Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+        
         // -------- EXTRACT TOKEN FROM HEADER --------
         // Check if Authorization header exists and starts with 'Bearer'
         if (
@@ -21,6 +24,7 @@ exports.protect = async (req, res, next) => {
         ) {
             // Extract token from "Bearer TOKEN"
             token = req.headers.authorization.split(' ')[1];
+            console.log('- Token extracted:', token ? 'Yes (length: ' + token.length + ')' : 'No');
         }
         // Alternative: Get token from cookie (if using cookies)
         // else if (req.cookies.token) {
@@ -29,11 +33,14 @@ exports.protect = async (req, res, next) => {
         
         // -------- CHECK IF TOKEN EXISTS --------
         if (!token) {
+            console.log('❌ PROTECT MIDDLEWARE - No token found');
             return res.status(401).json({
                 success: false,
                 message: 'Not authorized to access this route. Please login.'
             });
         }
+        
+        console.log('- JWT_SECRET exists?', !!process.env.JWT_SECRET);
         
         // -------- VERIFY TOKEN --------
         try {
@@ -41,12 +48,19 @@ exports.protect = async (req, res, next) => {
             // Returns payload if valid, throws error if invalid
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             
+            console.log('- Token verified. Decoded:', decoded);
+            
             // -------- GET USER FROM TOKEN --------
             // decoded = { id: '507f1f77bcf86cd799439011', iat: 1516239022 }
             req.user = await User.findById(decoded.id).select('-password');
             
+            console.log('- User found in DB?', !!req.user);
+            console.log('- User ID:', req.user ? req.user._id : 'N/A');
+            console.log('- User role:', req.user ? req.user.role : 'N/A');
+            
             // Check if user still exists
             if (!req.user) {
+                console.log('❌ PROTECT MIDDLEWARE - User not found in database');
                 return res.status(401).json({
                     success: false,
                     message: 'User no longer exists'
@@ -55,11 +69,14 @@ exports.protect = async (req, res, next) => {
             
             // Check if user is active
             if (!req.user.isActive) {
+                console.log('❌ PROTECT MIDDLEWARE - User account inactive');
                 return res.status(403).json({
                     success: false,
                     message: 'Your account has been deactivated'
                 });
             }
+            
+            console.log('✅ PROTECT MIDDLEWARE - Success! Calling next()');
             
             // -------- PASS CONTROL TO NEXT MIDDLEWARE --------
             next();
