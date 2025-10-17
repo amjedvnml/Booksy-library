@@ -141,6 +141,20 @@ exports.getBook = async (req, res, next) => {
 // ============================================
 exports.createBook = async (req, res, next) => {
     try {
+        // Debug logging
+        console.log('🔍 CREATE BOOK - Debug Info:');
+        console.log('- req.user exists?', !!req.user);
+        console.log('- req.user:', req.user);
+        console.log('- req.body:', req.body);
+        
+        // Check if user exists (should be set by protect middleware)
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated. Please login and try again.'
+            });
+        }
+        
         // Add user who created the book
         req.body.addedBy = req.user.id; // From auth middleware
         

@@ -3,7 +3,18 @@ const API_BASE_URL = 'https://booksy-library-backend.vercel.app/api'
 
 // Helper function to get auth token
 const getAuthToken = () => {
-  return localStorage.getItem('token')
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.warn('No authentication token found in localStorage')
+  }
+  return token
+}
+
+// Helper function to verify if user is authenticated
+export const isAuthenticated = () => {
+  const token = getAuthToken()
+  const user = localStorage.getItem('user')
+  return !!(token && user)
 }
 
 // Helper function to handle API responses
@@ -20,6 +31,19 @@ const handleResponse = async (response) => {
   if (!response.ok) {
     // Handle different error formats from the backend
     const errorMessage = data.message || data.error || data.msg || 'Something went wrong'
+    
+    // Check if it's an authentication error
+    if (response.status === 401 || response.status === 403) {
+      console.error('Authentication error detected. Token may be invalid or expired.')
+      
+      // Check if error message indicates token issues
+      if (errorMessage.includes('token') || errorMessage.includes('authentication') || errorMessage.includes('unauthorized')) {
+        // Optionally clear invalid token
+        // localStorage.removeItem('token')
+        // window.location.href = '/signin'
+      }
+    }
+    
     throw new Error(errorMessage)
   }
   
@@ -38,6 +62,9 @@ const getHeaders = (includeAuth = true, isFormData = false) => {
     const token = getAuthToken()
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
+      console.log('Auth header added with token (first 20 chars):', token.substring(0, 20) + '...')
+    } else {
+      console.warn('No token available for Authorization header')
     }
   }
   
@@ -265,6 +292,19 @@ export const getAllBooks = async () => {
 
 export const createBook = async (bookData) => {
   try {
+    // Check if user is authenticated
+    const token = getAuthToken()
+    if (!token) {
+      throw new Error('You must be logged in to create a book')
+    }
+    
+    console.log('Creating book with token:', token ? 'Token present' : 'No token')
+    console.log('Book data:', {
+      title: bookData.title,
+      author: bookData.author,
+      hasPdfFile: !!bookData.pdfFile
+    })
+    
     const formData = new FormData()
     
     // Append all book fields
@@ -274,14 +314,26 @@ export const createBook = async (bookData) => {
       }
     })
     
+    console.log('Sending request to:', `${API_BASE_URL}/books`)
+    
     const response = await fetch(`${API_BASE_URL}/books`, {
       method: 'POST',
       headers: getHeaders(true, true), // isFormData = true
       body: formData
     })
-    return await handleResponse(response)
+    
+    console.log('Response status:', response.status)
+    
+    const result = await handleResponse(response)
+    console.log('Book created successfully:', result)
+    
+    return result
   } catch (error) {
     console.error('Create book failed:', error)
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name
+    })
     throw error
   }
 }
